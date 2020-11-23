@@ -29,7 +29,7 @@ namespace KT
 		unsigned int comp_;
 		unsigned int intTime_;
 		KT::ktCmd keith_;
-		double dtMeas_;
+		int dtMeas_;
 		double stepV_;
 		int sizeArrayNeeded_;
 		int SMU_;

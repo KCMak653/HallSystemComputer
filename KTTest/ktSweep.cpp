@@ -37,8 +37,14 @@ namespace KT
 		else if (intTime_ == 3) {
 			dtMeas_ = 600; //ms
 		}
+		else 
+		{
+			std::cout<<"Invalid time integration mode"<<std::endl;
+
+			return;
+		}
 		//dtMeas_ =0.5;
-		stepV_ = SR_*dtMeas_;
+		stepV_ = SR_*dtMeas_*1e-3;
 		sizeArrayNeeded_ = (fabs(startV_ - stopV_)/(stepV_))+1.5;
 		keith_.srcZeroAll();
 	}
@@ -60,8 +66,10 @@ namespace KT
 		keith_.iMeas(SMU_, iMs[0]);
 		tMs[0] = (double)(clock());
 		delayT = dtMeas_ - tMs[0];
-		if (delayT < 0) delayT = 0;
+		std::cout<<delayT;
+		if (delayT < 0) {delayT = 0;}
 		Sleep(delayT);
+		
 		for (int i=1; i<sizeArray; i++){
 			//clk = clock();
 			keith_.vForce(SMU_,v);
@@ -70,6 +78,8 @@ namespace KT
 			keith_.iMeas(SMU_, iMs[i]);
 			tMs[i] = (double)(clock());
 			delayT = dtMeas_ - (tMs[i]-tMs[i-1]);
+			std::cout<<delayT<<std::endl;
+			if (delayT < 0) {delayT = 0;}
 			Sleep(delayT);
 		
 			

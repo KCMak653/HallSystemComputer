@@ -26,7 +26,7 @@
 #include "ktSweep.h"
 #include<time.h>
 #include<Windows.h>
-
+#include<time.h>
 //struct sweepParameters
 //{
 	//double startV, stopV, SR;
@@ -55,10 +55,11 @@ int __cdecl main(void)
 	std::cout<<last_time<<std::endl;
 	std::cout<<this_time<<std::endl;
 	*/
+	/*
 	sweepParameters sweepP;
 	sweepP.SMU = 2;
 	sweepP.startV = 0;
-	sweepP.stopV = .01;
+	sweepP.stopV = .002;
 	sweepP.SR = 0.001;
 	sweepP.lRange = 3;
 	sweepP.range =4;
@@ -79,8 +80,11 @@ int __cdecl main(void)
 	delete vFs;
 	delete iMs;
 	delete tMs;
-	
-
+	*/
+	std::cout<<"hey"<<std::endl;
+	Sleep(5000);
+	std::cout<<"you"<<std::endl;
+	/*
 	//KT::ktCmd chk;
 	//char cmd[] = "UL\0";
 	//int len = strlen(cmd);
