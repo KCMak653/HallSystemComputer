@@ -35,7 +35,7 @@ namespace KT
 			dtMeas_ = 100; //ms
 		}
 		else if (intTime_ == 3) {
-			dtMeas_ = 600; //ms
+			dtMeas_ = 700; //ms
 		}
 		else 
 		{
@@ -46,10 +46,12 @@ namespace KT
 		//dtMeas_ =0.5;
 		stepV_ = SR_*dtMeas_*1e-3;
 		sizeArrayNeeded_ = (fabs(startV_ - stopV_)/(stepV_))+1.5;
+		if (startV_ > stopV_) stepV_ = -1*stepV_;
+		std::cout<<"stepV is: "<<stepV_<<std::endl;
 		keith_.srcZeroAll();
 	}
 
-	int ktSweep::runSweep(double vFs[], int sizeArray, double iMs[], double tMs[]){
+	int ktSweep::runSweep(double vFs[], int sizeArray, double iMs[], double tMs[], int dMs[], int iStart){
 		if (sizeArrayNeeded_ != sizeArray){
 			std::cout<<"Wrong array size"<<std::endl;
 			return 1;
@@ -61,35 +63,47 @@ namespace KT
 		clock_t clk2 = clk;
 		
 		keith_.vForce(SMU_,v);
-		vFs[0] = v;
+		vFs[iStart] = v;
 		v = v + stepV_;		
-		keith_.iMeas(SMU_, iMs[0]);
-		tMs[0] = (double)(clock());
-		delayT = dtMeas_ - tMs[0];
-		std::cout<<delayT;
+		keith_.iMeas(SMU_, iMs[iStart]);
+		//clk2 = clock();
+		tMs[iStart] = (double)(clock());
+		delayT = dtMeas_ - tMs[iStart];
+		//std::cout<<delayT;
 		if (delayT < 0) {delayT = 0;}
+		dMs[iStart] = delayT;
 		Sleep(delayT);
 		
-		for (int i=1; i<sizeArray; i++){
+		for (int i=(iStart+1); i<(iStart+sizeArray); i++){
 			//clk = clock();
 			keith_.vForce(SMU_,v);
 			vFs[i] = v;
 			v = v + stepV_;		
 			keith_.iMeas(SMU_, iMs[i]);
 			tMs[i] = (double)(clock());
-			delayT = dtMeas_ - (tMs[i]-tMs[i-1]);
-			std::cout<<delayT<<std::endl;
+			delayT = dtMeas_*(i+1) - tMs[i];
+			//std::cout<<delayT<<std::endl;
 			if (delayT < 0) {delayT = 0;}
+			dMs[i] = delayT;
 			Sleep(delayT);
 		
 			
 			//std::cout<<v<<std::endl;
 		}
-		keith_.srcZeroAll();
+		//keith_.srcZeroAll();
 		return 0;
 	}
 
 	int ktSweep::arraySizeNeeded(){
 		return sizeArrayNeeded_;
 	}
+
+	int ktSweep::reverseV(){
+		double temp = startV_;
+		startV_ = stopV_;
+		stopV_ = temp;
+		stepV_ = stepV_*-1;
+		return 0;
+	}
+
 }

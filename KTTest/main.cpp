@@ -27,6 +27,8 @@
 #include<time.h>
 #include<Windows.h>
 #include<time.h>
+#include "ktProgram.h"
+#include <fstream>
 //struct sweepParameters
 //{
 	//double startV, stopV, SR;
@@ -45,46 +47,69 @@ int __cdecl main(void)
 	//test1.srcZeroAll();
 	//KT.GPIBCleanup(17, "Hello");
 	/*
+	int slptime = 15;
+	double slptime2 = 25;
 	clock_t this_time = clock();
-	clock_t last_time = this_time;
-	Sleep(300);
+	clock_t last_time = clock();
+	clock_t set_time = clock();
+	
+	Sleep(slptime);
+	this_time=clock();
+	
+	Sleep(slptime2);
 	last_time = clock();
-	double time_count = (double)(last_time);
-	time_count = time_count*1.23;
+	double time_count = (double)(last_time - this_time);
 	std::cout<<time_count<<std::endl;
 	std::cout<<last_time<<std::endl;
 	std::cout<<this_time<<std::endl;
+	std::cout<<set_time<<std::endl;
 	*/
-	/*
-	sweepParameters sweepP;
-	sweepP.SMU = 2;
+	
+	sweepVDS_IDSParameters sweepP;
+	sweepP.sweepSMU = 2;
 	sweepP.startV = 0;
-	sweepP.stopV = .002;
-	sweepP.SR = 0.001;
+	sweepP.stopV = .04;
+	sweepP.SR = 0.02;
 	sweepP.lRange = 3;
 	sweepP.range =4;
 	sweepP.comp = 4;
 	sweepP.intTime = 1;
-	KT::ktSweep swp(sweepP);
+	sweepP.nCycles = 2;
+	sweepP.fullCycle = TRUE;
+	KT::sweepVDS_IDS swp(sweepP);
+	
+	
 	int arraySize = swp.arraySizeNeeded();
-	//std::cout<<j<<std::endl;
+	std::cout<<"Array size is: "<<arraySize<<std::endl;
+	
 	double * vFs = new double[arraySize];
 	double * iMs = new double[arraySize];
 	double * tMs = new double[arraySize];
-	swp.runSweep(vFs, arraySize, iMs, tMs);
+	int * dMs = new int[arraySize];
+	swp.runProgram(vFs, arraySize, iMs, tMs, dMs);
 	for (int i = 0; i<arraySize; i++){
-		std::cout<<vFs[i]<<std::endl;
-		std::cout<<iMs[i]<<std::endl;
-		std::cout<<tMs[i]<<std::endl;
+		std::cout<<"F: :"<<vFs[i]<<std::endl;
+		std::cout<<"i: "<<iMs[i]<<std::endl;
+		std::cout<<"t: "<< tMs[i]<<std::endl;
+		std::cout<<"d: "<<dMs[i]<<std::endl;
 	}
+	//std::cout<<arraySize<<std::endl;
+
+	std::ofstream myfile;
+	myfile.open("Example.txt");
+	myfile<<"Writing this to file.\n";
+	myfile.close();
 	delete vFs;
 	delete iMs;
 	delete tMs;
-	*/
+	delete dMs;
+	/*
 	std::cout<<"hey"<<std::endl;
 	Sleep(5000);
 	std::cout<<"you"<<std::endl;
+	 */
 	/*
+
 	//KT::ktCmd chk;
 	//char cmd[] = "UL\0";
 	//int len = strlen(cmd);
