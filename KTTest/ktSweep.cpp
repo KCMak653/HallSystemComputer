@@ -15,6 +15,7 @@
 namespace KT
 {
 	ktSweep::ktSweep(const sweepParameters &entries){
+		//Set all private member variables from the inputted parameters
 		SMU_ = entries.SMU;
 		SR_ = entries.SR;
 		startV_ = entries.startV;
@@ -24,10 +25,17 @@ namespace KT
 		comp_ = entries.comp;
 		intTime_ = entries.intTime;
 
-		keith_.setComp(SMU_,comp_);
-		keith_.setLRange(SMU_, lRange_);
+		//Open handle to Keithley
+		keith_ = new KT::ktCmd();
+
+		//Set the machine parameters: Compliance, range, integration time 
+		keith_->setComp(SMU_,comp_);
+		keith_->setLRange(SMU_, lRange_);
 		//keith_.setRange(SMU_, range_); Command not recognized?????
-		keith_.setIntTime(intTime_);
+		keith_->setIntTime(intTime_);
+
+		//Set the time of each measurement based on the
+		//desired integration time
 		if (intTime_ == 1){
 			dtMeas_ = 50; //ms
 		}
@@ -43,54 +51,83 @@ namespace KT
 
 			return;
 		}
-		//dtMeas_ =0.5;
+		
+		//Set the voltage step based on measurement time and SR
 		stepV_ = SR_*dtMeas_*1e-3;
+
+		//Calculate the size of array needed to record measurements
 		sizeArrayNeeded_ = (fabs(startV_ - stopV_)/(stepV_))+1.5;
+
+		//Ensure stepV has the correct sign
 		if (startV_ > stopV_) stepV_ = -1*stepV_;
-		std::cout<<"stepV is: "<<stepV_<<std::endl;
-		keith_.srcZeroAll();
+		
+		//Force all SMUs to 0V
+		keith_->srcZeroAll();
 	}
 
 	int ktSweep::runSweep(double vFs[], int sizeArray, double iMs[], double tMs[], int dMs[], int iStart){
+		//First ensure that the correct array size has been passed as argument
 		if (sizeArrayNeeded_ != sizeArray){
 			std::cout<<"Wrong array size"<<std::endl;
 			return 1;
 		}
+		//Run the sweep. 
+
+		//Force V, then measure I and time
+		//Delay for the remainder of the measurment time
+		//increment the voltage and repeat
+		
 		int delayT;
+
+		//initalize voltage to start of sweep
 		double v = startV_;
-		//keith_.srcZeroAll();
+		
+		//Initiate the timer
 		clock_t clk = clock();
 		clock_t clk2 = clk;
 		
-		keith_.vForce(SMU_,v);
+		//Force voltage
+		keith_->vForce(SMU_,v);
+
+		//Record voltage
 		vFs[iStart] = v;
+
+		//Increment voltage
 		v = v + stepV_;		
-		keith_.iMeas(SMU_, iMs[iStart]);
-		//clk2 = clock();
+		
+		//Measure and store current
+		keith_->iMeas(SMU_, iMs[iStart]);
+		
+		//Record the time
 		tMs[iStart] = (double)(clock());
+
+		//Calculate amount of time to delay
 		delayT = dtMeas_ - tMs[iStart];
-		//std::cout<<delayT;
+		
+		//Set delay to zero if negative
 		if (delayT < 0) {delayT = 0;}
+
+		//Record delay
 		dMs[iStart] = delayT;
+
+		//Sleep for remainder of measurement period
 		Sleep(delayT);
 		
+		//Repeat for length of array, since multiple sweeps may occur,
+		//the indices of where to store data in array will differe by iStart
 		for (int i=(iStart+1); i<(iStart+sizeArray); i++){
-			//clk = clock();
-			keith_.vForce(SMU_,v);
+			
+			keith_->vForce(SMU_,v);
 			vFs[i] = v;
 			v = v + stepV_;		
-			keith_.iMeas(SMU_, iMs[i]);
+			keith_->iMeas(SMU_, iMs[i]);
 			tMs[i] = (double)(clock());
 			delayT = dtMeas_*(i+1) - tMs[i];
-			//std::cout<<delayT<<std::endl;
 			if (delayT < 0) {delayT = 0;}
 			dMs[i] = delayT;
 			Sleep(delayT);
-		
-			
-			//std::cout<<v<<std::endl;
 		}
-		//keith_.srcZeroAll();
+		
 		return 0;
 	}
 
@@ -104,6 +141,10 @@ namespace KT
 		stopV_ = temp;
 		stepV_ = stepV_*-1;
 		return 0;
+	}
+
+	ktSweep::~ktSweep(){
+		delete keith_;
 	}
 
 }

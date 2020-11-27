@@ -13,6 +13,7 @@ namespace KT
 {
 	sweepVDS_IDS::sweepVDS_IDS(const sweepVDS_IDSParameters &entries)
 	{
+		//Set all private member variables to inputs
 		sweepP_.SMU = entries.sweepSMU;
 		sweepP_.SR = entries.SR;
 		sweepP_.startV = entries.startV;
@@ -25,11 +26,12 @@ namespace KT
 		fullCycle_ = entries.fullCycle;
 		nCycles_ = entries.nCycles;
 		
-		//constSMU_ = entries.constSMU;
-
+		
+		//Initialize the sweep object
 		swp_ = new KT::ktSweep(sweepP_);
+
+		//Find the size of array needed to store values
 		swpSize_ = swp_->arraySizeNeeded();
-		std::cout<<"Sweep size is: "<<swpSize_<<std::endl;
 	}
 
 	int sweepVDS_IDS::arraySizeNeeded()
@@ -41,21 +43,31 @@ namespace KT
 
 	int sweepVDS_IDS::runProgram(double vFs[], int sizeArray, double iMs[], double tMs[], int dMs[])
 	{
+		//Set initial indice
 		int iStart = 0;
+
+		//Execute outer for loop for number of cycles requested
+		//Execute inner loop only if full cycle 
 		for (int j = 0; j<nCycles_; j++)
 		{
+			//Run the sweep
 			swp_->runSweep(vFs, swpSize_, iMs, tMs, dMs, iStart);
+			//Change the array indice
 			iStart = iStart + swpSize_ - 1;
 			if (fullCycle_)
 			{
+				//Reverse the direction of the sweep
 				swp_->reverseV();
 				swp_->runSweep(vFs, swpSize_, iMs, tMs, dMs, iStart);
-				//return 0;
 				swp_->reverseV();
 				iStart = iStart + swpSize_ - 1;
 			}
-			//std::cout<<"iStart: "<<iStart<<std::endl;
+			
 		}
 		return 0;
+	}
+
+	sweepVDS_IDS::~sweepVDS_IDS(){
+		delete swp_;
 	}
 }
