@@ -24,11 +24,14 @@
 #include <iostream>
 #include "ktCmd.h"
 #include "ktSweep.h"
+#include "ktConst.h"
 #include<time.h>
 #include<Windows.h>
 #include<time.h>
 #include "ktProgram.h"
 #include <fstream>
+#include <string.h>
+#include <string>
 //struct sweepParameters
 //{
 	//double startV, stopV, SR;
@@ -64,18 +67,73 @@ int __cdecl main(void)
 	std::cout<<this_time<<std::endl;
 	std::cout<<set_time<<std::endl;
 	*/
-	
-	sweepVDS_IDSParameters sweepP;
-	sweepP.sweepSMU = 2;
-	sweepP.startV = 0;
-	sweepP.stopV = .04;
-	sweepP.SR = 0.02;
+	/*
+	stepVDS_IDSParameters sweepP;
+	sweepP.startV = 0.2;
+	sweepP.stopV = 0.5;
+	sweepP.stepV = 0.1;
+	sweepP.dt = 500;
+	sweepP.stepTime = 3;
+	sweepP.stepSMU = 2;
+	sweepP.constSMU = 3;
+	sweepP.measSMU = 2;
+	sweepP.constV = 0.4;
 	sweepP.lRange = 3;
 	sweepP.range =4;
 	sweepP.comp = 4;
 	sweepP.intTime = 1;
-	sweepP.nCycles = 2;
+	sweepP.nCycles = 3;
+	sweepP.fullCycle = 0;
+
+
+	KT::stepVDS_IDS swp(sweepP);
+	
+	
+	int arraySize = swp.arraySizeNeeded();
+	std::cout<<"Array size is: "<<arraySize<<std::endl;
+	
+	double * vFs = new double[arraySize];
+	double * iMs = new double[arraySize];
+	double * tMs = new double[arraySize];
+	int * dMs = new int[arraySize];
+	//swp.runFlight(vFs, iMs, tMs, dMs, 0);
+	swp.runProgram(vFs, iMs, tMs, dMs, arraySize);
+	
+	for (int i = 0; i<arraySize; i++){
+		std::cout<<"F: :"<<vFs[i]<<std::endl;
+		std::cout<<"i: "<<iMs[i]<<std::endl;
+		std::cout<<"t: "<< tMs[i]<<std::endl;
+		std::cout<<"d: "<<dMs[i]<<std::endl;
+	}
+	//std::cout<<arraySize<<std::endl;
+	
+	std::string fn = "Ex3";
+	//std::string fn2 = "Param_";
+	swp.saveData(fn, vFs, iMs, tMs, dMs, arraySize);
+	
+	delete vFs;
+	delete iMs;
+	delete tMs;
+	delete dMs;
+	*/
+	
+	
+	
+	sweepVDS_IDSParameters sweepP;
+	sweepP.sweepSMU = 3;
+	sweepP.constSMU = 2;
+	sweepP.measSMU = 2;
+	sweepP.startV = .1;
+	sweepP.stopV = .8;
+	sweepP.SR = 0.1;
+	sweepP.constV = 0.4;
+	sweepP.lRange = 3;
+	sweepP.range =4;
+	sweepP.comp = 4;
+	sweepP.intTime = 1;
+	sweepP.nCycles = 1;
 	sweepP.fullCycle = TRUE;
+
 	KT::sweepVDS_IDS swp(sweepP);
 	
 	
@@ -86,23 +144,24 @@ int __cdecl main(void)
 	double * iMs = new double[arraySize];
 	double * tMs = new double[arraySize];
 	int * dMs = new int[arraySize];
-	swp.runProgram(vFs, arraySize, iMs, tMs, dMs);
+	swp.runProgram(vFs, iMs, tMs, dMs, arraySize);
 	for (int i = 0; i<arraySize; i++){
 		std::cout<<"F: :"<<vFs[i]<<std::endl;
 		std::cout<<"i: "<<iMs[i]<<std::endl;
 		std::cout<<"t: "<< tMs[i]<<std::endl;
 		std::cout<<"d: "<<dMs[i]<<std::endl;
 	}
-	//std::cout<<arraySize<<std::endl;
 
-	std::ofstream myfile;
-	myfile.open("Example.txt");
-	myfile<<"Writing this to file.\n";
-	myfile.close();
+	
+	std::string fn = "Ex2";
+	//std::string fn2 = "Param_";
+	swp.saveData(fn, vFs, iMs, tMs, dMs, arraySize);
 	delete vFs;
 	delete iMs;
 	delete tMs;
 	delete dMs;
+	
+	//std::cout<<fn+fn2;
 	/*
 	std::cout<<"hey"<<std::endl;
 	Sleep(5000);
