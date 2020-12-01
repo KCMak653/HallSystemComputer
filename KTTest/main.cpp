@@ -32,6 +32,7 @@
 #include <fstream>
 #include <string.h>
 #include <string>
+#include "rcCmd.h"
 //struct sweepParameters
 //{
 	//double startV, stopV, SR;
@@ -117,7 +118,15 @@ int __cdecl main(void)
 	delete dMs;
 	*/
 	
+	RC::rcCmd rc3;
+
+	rc3.chOn(2);
+	rc3.chOn(4);
+	rc3.chOn(6);
+	rc3.chOff(2);
+	rc3.chAllOff();
 	
+	/*
 	
 	sweepVDS_IDSParameters sweepP;
 	sweepP.sweepSMU = 3;
@@ -160,7 +169,7 @@ int __cdecl main(void)
 	delete iMs;
 	delete tMs;
 	delete dMs;
-	
+	*/
 	//std::cout<<fn+fn2;
 	/*
 	std::cout<<"hey"<<std::endl;
