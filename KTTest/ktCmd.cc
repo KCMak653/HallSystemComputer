@@ -216,8 +216,8 @@ namespace KT
 			GPIBCleanup("Unable to read data from multimeter");
 			return 1;
 		}
-		sscanf(ValueStr, "%*[^0-9]%lf", &measVal);
-		
+		sscanf(ValueStr, "%*[^-0123456789]%lf", &measVal);
+		//sscanf(ValueStr, "%*s%f", &measVal);
 		return 0;
 	}
 	int ktCmd::sendPersCmd(char cmd[], int len){

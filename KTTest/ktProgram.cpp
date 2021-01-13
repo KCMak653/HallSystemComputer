@@ -39,6 +39,10 @@ namespace KT
 
 		//Find the size of array needed to store values
 		swpSize_ = swp_->arraySizeNeeded();
+
+		//Calculate runtime:
+		runTime_ = (fabs(sweepP_.startV - sweepP_.stopV)/sweepP_.SR)
+			*(int(fullCycle_)+1)*nCycles_;
 	}
 
 	int sweepVDS_IDS::arraySizeNeeded()
@@ -50,6 +54,12 @@ namespace KT
 
 	int sweepVDS_IDS::runProgram(double vFs[], double iMs[], double tMs[], int dMs[], int sizeArray)
 	{
+		time_t tstart;
+		time_t tend;
+		time(&tstart);
+		tend = tstart+runTime_;
+		std::cout<<"Program began at: " <<ctime(&tstart);
+		std::cout<<"Program will finish at: " <<ctime(&tend);
 		//Set initial indice
 		int iStart = 0;
 
@@ -129,6 +139,7 @@ namespace KT
 
 		//Find the size of array needed to store values
 		cnstSize_ = cnst_->arraySizeNeeded();
+		runTime_ = constP_.measTime;
 	}
 
 	int constVDS_IDS::arraySizeNeeded()
@@ -138,6 +149,12 @@ namespace KT
 
 	int constVDS_IDS::runProgram(double vFs[], double iMs[], double tMs[], int dMs[], int sizeArray)
 	{
+		time_t tstart;
+		time_t tend;
+		time(&tstart);
+		tend = tstart+runTime_;
+		std::cout<<"Program began at: " <<ctime(&tstart);
+		std::cout<<"Program will finish at: " <<ctime(&tend);
 		int iStart = 0;
 		cnst_ -> runTest(vFs, iMs, tMs, dMs, cnstSize_, iStart);
 		return 0;
@@ -212,6 +229,7 @@ namespace KT
 		//std::cout<<(nSteps_ - 1)*((int(fullCycle_)+1)*nCycles_)<<std::endl;
 		nStepsTot_ = (nSteps_ - 1)*((int(fullCycle_)+1)*nCycles_)
 				+(1-int(fullCycle_))*nCycles_+ fullCycle_;
+		runTime_ = nStepsTot_ * stepP_.measTime;
 		std::cout<<"nStep: "<<nSteps_<<std::endl;
 		std::cout<<"nSteptot: "<<nStepsTot_<<std::endl;
 		sizeArrayNeeded_ = nStepsTot_*(stepSize_-1) + 1;
@@ -228,6 +246,12 @@ namespace KT
 			std::cout<<"Incorrect Array size"<<std::endl;
 			return 1;
 		}
+		time_t tstart;
+		time_t tend;
+		time(&tstart);
+		tend = tstart+runTime_;
+		std::cout<<"Program began at: " <<ctime(&tstart);
+		std::cout<<"Program will finish at: " <<ctime(&tend);
 		//Set initial indice
 		int iStart = 0;
 		int nS = nSteps_;

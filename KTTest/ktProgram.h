@@ -81,6 +81,7 @@ namespace KT
 		int nCycles_; //Number of cycles
 		bool fullCycle_; //Return to startV
 		int sizeArrayNeeded; //Size of array to hold values
+		int runTime_; //Total runtime of program in seconds
 	};
 	
 	class constVDS_IDS
@@ -105,6 +106,7 @@ namespace KT
 		KT::ktConst* cnst_; //Ptr to sweep object
 		int cnstSize_; // Size of a single sweep
 		int sizeArrayNeeded; //Size of array to hold values
+		int runTime_; //Total runtime of program in seconds
 
 	};
 
@@ -133,6 +135,7 @@ namespace KT
 		double constSMU_;
 		int sizeArrayNeeded_;
 		void reverseV();
+		int runTime_; //Total runtime of program in seconds
 
 	};
 

@@ -60,6 +60,7 @@ namespace KT
 		int sweepSMU_; //SMU to sweep (1 -> 4)
 		int constSMU_; //SMU to keep const
 		int measSMU_; //SMU to measure
+		
 
 	};
 }
