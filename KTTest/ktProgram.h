@@ -26,14 +26,14 @@ struct sweepVDS_IDSParameters
 
 struct constVDS_IDSParameters
 {
-	double constV; //Constant bias to apply [V]
+	double appV[4]; //Constant bias to apply [V]
 	double measTime; //Total measurement time [s]
 	double dt; //Measurement frequency [ms]
 	int lRange; //Order of mag of lowest range [A]
 	int range; //Order of mag of I range [A]
 	int comp; //Compliance, max I value [A}
 	int intTime; //Integration time (1,2,3)(Fast, Normal, Long)
-	int constSMU; //SMU to keep constant
+	//int constSMU; //SMU to keep constant
 	int measSMU; //SMU to measure
 };
 
@@ -42,7 +42,7 @@ struct stepVDS_IDSParameters
 	double startV; //Start step voltage [V]
 	double stopV; //Max voltage to apply [V]
 	double stepV; //Size of voltage step [V]
-	double constV; //Constant bias to apply [V]
+	double appV[4]; //Constant bias to apply [V]
 	double stepTime; //Step measurement time [s]
 	double dt; //Measurement frequency [ms]
 	int lRange; //Order of mag of lowest range [A]
@@ -51,7 +51,7 @@ struct stepVDS_IDSParameters
 	int intTime; //Integration time (1,2,3)(Fast, Normal, Long)
 	int nCycles; //Number of cycles
 	bool fullCycle;
-	int constSMU; //SMU to keep constant
+	//int constSMU; //SMU to keep constant
 	int stepSMU; //SMU to step
 	int measSMU; //SMU to measure
 };
@@ -91,14 +91,14 @@ namespace KT
 		constVDS_IDS(const constVDS_IDSParameters &entries);
 
 		//Runs the program, stores results in passed arrays
-		int runProgram(double vFs[], double iMs[], double tMs[], int dMs[],int sizeArray);
+		int runProgram(double iMs[], double tMs[], int dMs[],int sizeArray);
 
 		//Returns the size of array needed to store measurements
 		int arraySizeNeeded();
 
 
 		//Save the data
-		int saveData(std::string fn, double vFs[],  double iMs[], double tMs[], int dMs[],int sizeArray);
+		int saveData(std::string fn,  double iMs[], double tMs[], int dMs[],int sizeArray);
 
 		~constVDS_IDS();
 	private:
@@ -131,11 +131,12 @@ namespace KT
 		double stopV_;
 		double startV_;
 		double stepV_;
-		double constV_;
-		double constSMU_;
+		double appV_[4];
+		//double constSMU_;
 		int sizeArrayNeeded_;
 		void reverseV();
 		int runTime_; //Total runtime of program in seconds
+		void fillVFs();
 
 	};
 

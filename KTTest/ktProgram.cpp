@@ -100,6 +100,7 @@ namespace KT
 		myfile<<"vForce [V], iMeas [A], time [ms], dTime [ms]\n";
 		for (int i = 0; i<sizeArray; i++)
 		{
+			//std::cout<<"Saving line: "<< i << " of " << sizeArray <<std::endl;
 			myfile<<vFs[i]<<','<<iMs[i]<<','<<tMs[i]<<','<<dMs[i]<<"\n";
 		}
 		myfile.close();
@@ -125,10 +126,12 @@ namespace KT
 
 		//Set all private member variables to inputs
 		constP_.dt = entries.dt;
-		constP_.constSMU = entries.constSMU;
+		//constP_.constSMU = entries.constSMU;
 		constP_.measSMU = entries.measSMU;
 		constP_.measTime = entries.measTime;
-		constP_.constV = entries.constV;
+		for (int i = 0; i<4; i++){
+			constP_.appV[i] = entries.appV[i];
+		}
 		constP_.lRange = entries.lRange;
 		constP_.range = entries.range;
 		constP_.comp = entries.comp;
@@ -147,7 +150,7 @@ namespace KT
 		return cnstSize_;
 	}
 
-	int constVDS_IDS::runProgram(double vFs[], double iMs[], double tMs[], int dMs[], int sizeArray)
+	int constVDS_IDS::runProgram(double iMs[], double tMs[], int dMs[], int sizeArray)
 	{
 		time_t tstart;
 		time_t tend;
@@ -156,11 +159,11 @@ namespace KT
 		std::cout<<"Program began at: " <<ctime(&tstart);
 		std::cout<<"Program will finish at: " <<ctime(&tend);
 		int iStart = 0;
-		cnst_ -> runTest(vFs, iMs, tMs, dMs, cnstSize_, iStart);
+		cnst_ -> runTest(iMs, tMs, dMs, cnstSize_, iStart);
 		return 0;
 	}
 
-	int constVDS_IDS::saveData(std::string fn, double vFs[], double iMs[], double tMs[], int dMs[], int sizeArray)
+	int constVDS_IDS::saveData(std::string fn, double iMs[], double tMs[], int dMs[], int sizeArray)
 	{
 		
 		//Data directory
@@ -174,19 +177,22 @@ namespace KT
 
 		std::ofstream myfile;
 		myfile.open(fp);
-		myfile<<"vForce [V], iMeas [A], time [ms], dTime [ms]\n";
+		myfile<<"iMeas [A], time [ms], dTime [ms]\n";
 		for (int i = 0; i<sizeArray; i++)
 		{
-			myfile<<vFs[i]<<','<<iMs[i]<<','<<tMs[i]<<','<<dMs[i]<<"\n";
+			myfile<<iMs[i]<<','<<tMs[i]<<','<<dMs[i]<<"\n";
 		}
 		myfile.close();
 
 		//std::string fnP = "P_" + fn;
 		std::ofstream myfile2;
 		myfile2.open(fpP);
-		myfile2<<"dt [ms], measTime [s], constV [V], lRange, range, comp, intTime, constSMU, measSMU\n";
-		myfile2<<constP_.dt<<","<<constP_.measTime<<','<<constP_.constV<<','
-				<<constP_.lRange<<','<<constP_.range<<','<<constP_.comp<<','
+		myfile2<<"dt [ms], measTime [s], constV [V], lRange, range, comp, intTime, measSMU\n";
+		myfile2<<constP_.dt<<","<<constP_.measTime<<', [';
+		for (int smu = 0; smu<3; smu++){
+			myfile2<<constP_.appV[smu]<<',';
+		}
+		myfile2<<constP_appV[3]<< '],'<<constP_.lRange<<','<<constP_.range<<','<<constP_.comp<<','
 				<<constP_.intTime<<','<<','<<constP_.constSMU<<','<<constP_.measSMU<<"\n";
 		myfile2.close();
 
@@ -200,11 +206,16 @@ namespace KT
 	stepVDS_IDS::stepVDS_IDS(const stepVDS_IDSParameters &entries){
 
 		//Set all private member variables to inputs
+		
 		stepP_.dt = entries.dt;
-		stepP_.constSMU = entries.stepSMU;
+		for (int smu=0; smu<4; smu++){
+			stepP_.appV[smu] = entries.appV[smu];
+		}
+		stepP_.appV[entries.measSMU-1] = entries.startV;
+		//stepP_.constSMU[i] = entries.stepSMU;
 		stepP_.measSMU = entries.measSMU;
 		stepP_.measTime = entries.stepTime;
-		stepP_.constV = entries.startV;
+		
 		stepP_.lRange = entries.lRange;
 		stepP_.range = entries.range;
 		stepP_.comp = entries.comp;
@@ -213,11 +224,11 @@ namespace KT
 		startV_ = entries.startV;
 		stopV_ = entries.stopV;
 		stepV_ = entries.stepV;
-		constV_ = entries.constV;
+		//constV_ = entries.constV;
 		nCycles_ = entries.nCycles;
 		fullCycle_ = entries.fullCycle;
 
-		constSMU_ = entries.constSMU;
+		//constSMU_ = entries.constSMU;
 
 		step_ = new KT::ktConst(stepP_);
 
@@ -230,6 +241,7 @@ namespace KT
 		nStepsTot_ = (nSteps_ - 1)*((int(fullCycle_)+1)*nCycles_)
 				+(1-int(fullCycle_))*nCycles_+ fullCycle_;
 		runTime_ = nStepsTot_ * stepP_.measTime;
+		if (startV_>stopV_) stepV_ = -fabs(stepV_);
 		std::cout<<"nStep: "<<nSteps_<<std::endl;
 		std::cout<<"nSteptot: "<<nStepsTot_<<std::endl;
 		sizeArrayNeeded_ = nStepsTot_*(stepSize_-1) + 1;
@@ -256,6 +268,8 @@ namespace KT
 		int iStart = 0;
 		int nS = nSteps_;
 		double iV = startV_;
+		step_->forceConstV(constSMU_, constV_);
+		std::cout<<"Forcing "<< constV_ << "on SMU" << constSMU_<<std::endl;
 		//Execute outer for loop for number of cycles requested
 		//Execute inner loop only if full cycle 
 		for (int j = 0; j<nCycles_; j++)

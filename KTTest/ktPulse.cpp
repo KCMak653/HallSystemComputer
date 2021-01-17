@@ -1,5 +1,5 @@
 #include "ktCmd.h"
-#include "ktConst.h"
+#include "ktPulse.h"
 #include <string.h>
 #include<Windows.h>
 #include <stdio.h>
@@ -10,14 +10,19 @@
 
 namespace KT
 {
-	ktConst::ktConst(const constParameters &entries)
+	ktPulse::ktPulse(const pulseParameters &entries)
 	{
 		dt_ = entries.dt;
-		measTime_ = entries.measTime;
-		for (int i = 0; i <4; i++){
-			appV_[i] = entries.appV[i];
-		}
-		//constSMU_ = entries.constSMU;
+		initTime_ = entries.initTime;
+		stepTime_ = entries.stepTime;
+		pulseTime_ = entries.pulseTime;
+		constV_ = entries.constV;
+		constV2_ = entries.constV2;
+		pulseV_ = entries.pulseV;
+		nPulses_ = entries.nPulses;
+		constSMU_ = entries.constSMU;
+		constSMU2_ = entries.constSMU2;
+		pulseSMU_ = entries.pulseSMU;
 		measSMU_ = entries.measSMU;
 		lRange_ = entries.lRange;
 		range_ = entries.range;
@@ -58,19 +63,22 @@ namespace KT
 		}
 
 		//Calculate the size of array needed to record measurements
-		sizeArrayNeeded_ = measTime_*1e3/dt_+1.5;
+		initSizeArray = initTime_*1e3/dt_+0.5;
+		pulseSizeArray = pulseTime_*1e3/dt_+0.5;
+		stepSizeArray = stepTime_*1e3/dt_+0.5;
+
+		sizeArrayNeeded_ = initSizeArray + (pulseSizeArray + stepSizeArray)*nPulses_ + 1;
 		
 		//Force all SMUs to 0V
 		keith_->srcZeroAll();
 	}
-	/*
-	int ktConst::forceConstV(int constSMU2, double vConst)
+	/*int ktConst::forceConstV(int constSMU2, double vConst)
 	{
 		keith_->vForce(constSMU2, vConst);
 		return 0;
 	}
 	*/
-	int ktConst::runTest(double iMs[], double tMs[], int dMs[], int sizeArray, int iStart)
+	int ktPulse::runTest(double vFs[], double iMs[], double tMs[], int dMs[], int sizeArray, int iStart)
 	{
 		//First ensure that the correct array size has been passed as argument
 		if (sizeArrayNeeded_ != sizeArray){
@@ -79,24 +87,24 @@ namespace KT
 		}
 		int delayT;
 		
-		//double v = constV_;
+		double v1 = constV_;
+		double v2 = constV2_;
 		//Initiate the timer
 		clock_t clk = clock();
 		clock_t clk2 = clk;
 		
 		//Apply constant bias
 		//std::cout<<"V: "<<constV_<<std::endl;
-		for (int smu = 0; smu<4; smu++){
-			keith_->vForce(smu+1,appV[smu]);
-		}
+		keith_->vForce(constSMU_,constV_);
+		keith_->vForce(constSMU2_, constV2_);
+
 		
-		
-		//Run the sweep. 
+		//Wait for initial time,measuring current 
 
 		//Measure I and time
 		//Delay for the remainder of the measurment time
 		
-		//vFs[iStart] = v;
+		vFs[iStart] = v;
 
 		//Measure and store current
 		keith_->iMeas(measSMU_, iMs[iStart]);
@@ -119,7 +127,7 @@ namespace KT
 		//Repeat for length of array, since multiple sweeps may occur,
 		//the indices of where to store data in array will differe by iStart
 		for (int i=(iStart+1); i<(iStart+sizeArray); i++){
-			//vFs[i] = v;
+			vFs[i] = v;
 			keith_->iMeas(measSMU_, iMs[i]);
 			tMs[i] = (double)(clock());
 			delayT = dt_*(i+1) - tMs[i];
@@ -134,13 +142,13 @@ namespace KT
 	int ktConst::arraySizeNeeded(){
 		return sizeArrayNeeded_;
 	}
-/*
+
 	int ktConst::setV(double v)
 	{
 		constV_ = v;
 		return 0;
 	}
-	*/
+
 	ktConst::~ktConst(){
 		keith_->srcZeroAll();
 		delete keith_;
