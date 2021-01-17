@@ -56,6 +56,24 @@ struct stepVDS_IDSParameters
 	int measSMU; //SMU to measure
 };
 
+struct pulseVGS_IDSParameters
+{
+	double appV[4]; //Constant bias to apply [V]
+	double pulseV; //Pulse voltage [V]
+	double pulseOffV; //Off voltage
+	double initTime; //Initial settle time [s]
+	double stepTime; //Time betwen pulses [s]
+	double pulseTime;// Pulse time[s]
+	int nPulses; // Number of pulses
+	double dt; //Measurement frequency [ms]
+	int lRange; //Order of mag of lowest range [A]
+	int range; //Order of mag of I range [A]
+	int comp; //Compliance, max I value [A}
+	int intTime; //Integration time (1,2,3)(Fast, Normal, Long)
+	int pulseSMU; //SMU to pulse
+	int measSMU; //SMU to measure
+};
+
 namespace KT 
 {
 	class sweepVDS_IDS
@@ -117,7 +135,7 @@ namespace KT
 		int runProgram(double vFs[], double iMs[], double tMs[], int dMs[], int sizeArray);
 		int arraySizeNeeded();
 		//int saveData(std::string fn, double vFs[], int sizeArray, double iMs[], double tMs[]);
-		int runFlight(double vFs[], double iMs[], double tMs[], int dMs[], int iStart, int nS, double v);
+		int runFlight(double iMs[], double tMs[], int dMs[], int iStart, int nS, double v);
 		int saveData(std::string fn, double vFs[], double iMs[], double tMs[], int dMs[], int sizeArray);
 		~stepVDS_IDS();
 	private:
@@ -131,12 +149,44 @@ namespace KT
 		double stopV_;
 		double startV_;
 		double stepV_;
-		double appV_[4];
+		int stepSMU_;
+		//double appV_[4];
 		//double constSMU_;
 		int sizeArrayNeeded_;
 		void reverseV();
 		int runTime_; //Total runtime of program in seconds
-		void fillVFs();
+		
+
+	};
+
+	class pulseVGS_IDS
+	{
+	public:
+		pulseVGS_IDS(const pulseVGS_IDSParameters &entries);
+		int runProgram(double vFs[], double iMs[], double tMs[], int dMs[], int sizeArray);
+		int arraySizeNeeded();
+		//int saveData(std::string fn, double vFs[], int sizeArray, double iMs[], double tMs[]);
+		int runPulse(double iMs[], double tMs[], int dMs[], int iStart, int nS, double v);
+		int saveData(std::string fn, double vFs[], double iMs[], double tMs[], int dMs[], int sizeArray);
+		~pulseVGS_IDS();
+	private:
+		constParameters pulseP_;
+		KT::ktConst* pulse_;
+		int initSize_;
+		int pulseSize_;
+		int stepSize_;
+		int nPulses_;
+		double pulseV_;
+		double pulseOffV;
+		double initTime_;
+		double pulseTime_;
+		double stepTime_;
+		int pulseSMU_;
+		//double constSMU_;
+		int sizeArrayNeeded_;
+		//void reverseV();
+		int runTime_; //Total runtime of program in seconds
+		
 
 	};
 

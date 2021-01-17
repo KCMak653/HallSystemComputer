@@ -87,7 +87,7 @@ namespace KT
 		//Apply constant bias
 		//std::cout<<"V: "<<constV_<<std::endl;
 		for (int smu = 0; smu<4; smu++){
-			keith_->vForce(smu+1,appV[smu]);
+			keith_->vForce(smu+1,appV_[smu]);
 		}
 		
 		
@@ -134,13 +134,19 @@ namespace KT
 	int ktConst::arraySizeNeeded(){
 		return sizeArrayNeeded_;
 	}
-/*
-	int ktConst::setV(double v)
+
+	int ktConst::setV(int SMU, double v)
 	{
-		constV_ = v;
+		appV_[SMU-1] = v;
 		return 0;
 	}
-	*/
+
+	int ktConst::setMeasTime(double t)
+	{
+		measTime_ = t;
+		return 0;
+	}
+	
 	ktConst::~ktConst(){
 		keith_->srcZeroAll();
 		delete keith_;

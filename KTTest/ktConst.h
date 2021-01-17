@@ -5,7 +5,7 @@
 #pragma once
 
 
-//Input parameters
+//Input parameterss
 struct constParameters
 {
 	double appV[4]; //Constant bias to apply [V]
@@ -15,7 +15,6 @@ struct constParameters
 	int range; //Order of mag of I range [A]
 	int comp; //Compliance, max I value [A}
 	int intTime; //Integration time (1,2,3)(Fast, Normal, Long)
-	int constSMU; //SMU to keep constant
 	int measSMU; //SMU to measure
 };
 
@@ -29,7 +28,9 @@ namespace KT
 
 		int runTest(double iMs[], double tMs[], int dMs[], int sizeArray, int iStart);
 		//int forceConstV(int constSMU2, double vConst);
-		//int setV(double v);
+		int setV(int SMU, double v);
+
+		int setMeasTime(double t);
 
 		int arraySizeNeeded();
 

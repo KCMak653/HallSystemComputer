@@ -224,6 +224,7 @@ namespace KT
 		startV_ = entries.startV;
 		stopV_ = entries.stopV;
 		stepV_ = entries.stepV;
+		stepSMU_ = entries.stepSMU;
 		//constV_ = entries.constV;
 		nCycles_ = entries.nCycles;
 		fullCycle_ = entries.fullCycle;
@@ -268,14 +269,15 @@ namespace KT
 		int iStart = 0;
 		int nS = nSteps_;
 		double iV = startV_;
-		step_->forceConstV(constSMU_, constV_);
-		std::cout<<"Forcing "<< constV_ << "on SMU" << constSMU_<<std::endl;
+		//step_->forceConstV(constSMU_, constV_);
+		
+		//std::cout<<"Forcing "<< constV_ << "on SMU" << constSMU_<<std::endl;
 		//Execute outer for loop for number of cycles requested
 		//Execute inner loop only if full cycle 
 		for (int j = 0; j<nCycles_; j++)
 		{
 			//Run the sweep
-			iStart = runFlight(vFs, iMs, tMs, dMs, iStart, nS, iV);
+			iStart = runFlight(iMs, tMs, dMs, iStart, nS, iV);
 			nS = nSteps_ - fullCycle_;
 			//Change the array indice
 			std::cout<<iStart<<std::endl;
@@ -289,24 +291,50 @@ namespace KT
 				//Reverse the direction of the sweep
 				reverseV();
 				iV = startV_ + stepV_;
-				iStart = runFlight(vFs, iMs, tMs, dMs, iStart, nS, iV);
+				iStart = runFlight(iMs, tMs, dMs, iStart, nS, iV);
 				reverseV();
 				//iStart = iStart + (stepSize_ - 1) * (nSteps_ -1) - 1;
 			}
 			iV = startV_ + stepV_*(int(fullCycle_));
 			
 		}
+
+		//Fill in vFs[], since ktConst does not do this
+		int iStart = 0;
+		int iV = startV_;
+		for (int i = 0; i<nCycles_; i++){ 
+			for (int j = 0; j<nS; j++){
+				for (int k=iStart; k<(iStart+stepSize_); k++){
+					vFs[k] = iV;
+				}
+				iV = iV + stepV_;
+				iStart = iStart + stepSize_ - 1;
+			}
+			if (fullCycle_) {
+				reverseV();
+				iV = startV_ + stepV_;
+				for (int j = 0; j<nS; j++){
+					for (int k=iStart; k<(iStart+stepSize_); k++){
+						vFs[k] = iV;
+					}
+				iV = iV + stepV_;
+				iStart = iStart + stepSize_ - 1;
+				}
+				reverseV();
+			}
+			iV = startV_ + stepV_*(int(fullCycle_));
+		}
 		return 0;
 	}
 
-	int stepVDS_IDS::runFlight(double vFs[], double iMs[], double tMs[], int dMs[], int iStart, int nS, double v)
+	int stepVDS_IDS::runFlight(double iMs[], double tMs[], int dMs[], int iStart, int nS, double v)
 	{
-		step_->setV(v);
+		step_->setV(stepSMU_, v);
 		for (int i=0; i<nS; i++){
 			std::cout<<iStart<<std::endl;
-			step_->runTest(vFs, iMs, tMs, dMs, stepSize_, iStart);
+			step_->runTest(iMs, tMs, dMs, stepSize_, iStart);
 			v = v + stepV_;
-			step_->setV(v);
+			step_->setV(stepSMU_, v);
 			iStart = iStart + stepSize_- 1;
 		}
 		return iStart;
@@ -347,11 +375,16 @@ namespace KT
 		myfile2<<"stepVDS_IDS: Parameters\n";
 		myfile2<<"dt [ms], stepTime [s], startV [V], stopV [V], stepV [V], "
 			"constV [V], nCycles, fullCycle, lRange, range, comp, "
-			"intTime, stepSMU, constSMU, measSMU\n";
-		myfile2<<stepP_.dt<<","<<stepP_.measTime<<','<<startV_<<','<<stopV_<<','<<stepV_<<','
-				<<constV_<<','<<nCycles_<<','<<fullCycle_<<','
+			"intTime, stepSMU, measSMU\n";
+		myfile2<<stepP_.dt<<","<<stepP_.measTime<<','<<startV_<<','<<stopV_<<','<<stepV_<<', [';
+		for (int smu = 0; smu<4; smu++){
+			if (smu != stepSMU_){
+				myfile2<<stepP_.appV[smu]<<',';
+			}
+		}
+		myfile2 <<"],"<< nCycles_<<','<<fullCycle_<<','
 				<<stepP_.lRange<<','<<stepP_.range<<','<<stepP_.comp<<','
-				<<stepP_.intTime<<','<< stepP_.constSMU<<','<<constSMU_<<','
+				<<stepP_.intTime<<',' << stepSMU_<<','
 				<<stepP_.measSMU<<"\n";
 		myfile2.close();
 		
@@ -360,5 +393,163 @@ namespace KT
 	stepVDS_IDS::~stepVDS_IDS(){
 		delete step_;
 	}
+
+
+	pulseVGS_IDS::pulseVGS_IDS(const pulseVGS_IDSParameters &entries){
+
+		//Set all private memeber variables to inputs
+
+		pulseP_.dt  = entries.dt;
+		for (int smu=0; smu<4; smu++){
+			pulseP_.appV[smu] = entries.appV[smu];
+		}
+		pulseP_.measSMU = entries.measSMU;
+
+		pulseP_.lRange = entries.lRange;
+		pulseP_.range = entries.range;
+		pulseP_.comp = entries.comp;
+		pulseP_.intTime = entries.intTime;
+
+
+		pulseP_.measTime = entries.initTime;
+
+		initTime_ = entries.initTime;
+		pulseTime_ = entries.pulseTime;
+		stepTime_ = entries.stepTime;
+
+		pulseOffV_ = entries.pulseOffV;
+		pulseV_ = entries.pulseV;
+		nPulses_ = entries.nPulses;
+		pulseSMU_ = entries.pulseSMU_;
+
+		//Calculate size needed for each step
+
+		pulse_ = new KT::ktConst(pulseP_);
+
+		initSize_ = pulse_->arraySizeNeeded();
+		std::cout<<"init size: " << initSize_<<std::endl;
+		pulse->setMeasTime(stepTime_);
+		stepSize_ = pulse_->arraySizeNeeded();
+		std::cout<<"step size: " << stepSize_<<std::endl;
+		pulse->setMeasTime(pulseTime_);
+		pulseSize_ = pulse_->arraySizeNeeded();
+		std::cout<<"pulse size: " << pulseSize_<<std::endl;
+		if (pulseSize_ < 2){ 
+			std::cout<<"Need longer pulse"<<std::endl;
+		}
+		sizeArrayNeeded_ = initSize_  + (stepSize_ + pulseSize_ - 2)*nPulses_;
+		runTime_ = sizeArrayNeeded_ * stepP_.dt*1e-3;
+	}
+
+	int pulseVGS_IDS::arraySizeNeeded(){
+		return sizeArrayNeeded_;
+	}
+
+	int pulseVGS_IDS::runProgram(double vFs[], double iMs[], double tMs[], int dMs[], int sizeArray)
+	{
+		if (sizeArray != sizeArrayNeeded_){
+			std::cout<<"Incorrect Array size"<<std::endl;
+			return 1;
+		}
+
+		time_t tstart;
+		time_t tend;
+		time(&start):
+		tend = tstart+runTime_;
+		std::cout<<"Program began at: " <<ctime(&tstart);
+		std::cout<<"Program will finish at: "<<ctime(&tend);
+
+		//Set initial measurement time
+		pulse_->setMeasTime(initTime_);
+
+		//Set initial indice
+		int iStart = 0;
+
+		pulse_->runTest(iMs, tMs, dMs, initSize_, iStart);
+		iStart = iStart + initSize_ -1;
+
+		for (int i = 0; i<nPulses_; i++){
+			pulse_->setMeasTime(pulseTime_);
+			pulse_->setV(pulseSMU_, pulseV_);
+			pulse_->runTest(iMs, tMs, dMs, pulseSize_, iStart)
+			pulse_->setV(pulseSMU_, pulseOffV_);
+			iStart = iStart + pulseSize_-1;
+			pulse_->setMeasTime(stepTime_);
+			pulse_->runTest(iMs, tMs, dMs, stepSize_, iStart);
+			iStart = iStart + stepSize_;
+		}
+		//Fill in vFs
+
+		int iStart = 0;
+		int iV = pulseOffV_;
+
+		for (int k = 0; k<initSize_; k++){
+			vFs[k] = pulseOffV_;
+		}
+		iStart = iStart + initSize_ - 1;
+
+		for (int i = 0; i<nPulses_; i++){
+			for (k = iStart; k<(iStart+pulseSize_); k++)
+			{
+				vFs[k] = pulseV_;
+			}
+			iStart = iStart + pulseSize_ - 1;
+			for (k = iStart; k<(iStart+stepSize_); k++)
+			{
+				vFs[k] = pulseOffV_;
+			}
+			iStart = iStart + stepSize_ - 1;
+		}
+
+		return 0;
+	}
+
+
+	int pulseVGS_IDS::saveData(std::string fn, double vFs[], double iMs[], double tMs[], int dMs[], int sizeArray)
+	{
+		//Data Directory
+		std::string direc = "C:/Documents and Settings/NanoHall_User/My Documents/Data-Kristin/Keithley/";
+		//save as text file
+		std::string frmt = ".csv";
+		
+		std::string fp = direc + fn + frmt;
+		std::string fpP = direc + fn + "_Param" + frmt;
+
+		std::ofstream myfile;
+		myfile.open(fp);
+		myfile<<"vForce ['V'], iMeas [A], time [ms], dTime [ms]\n";
+		for (int i = 0; i<sizeArray; i++)
+		{
+			myfile<<vFs[i]<<','<<iMs[i]<<','<<tMs[i]<<','<<dMs[i]<<"\n";
+		}
+		myfile.close();
+
+		std::ofstream myfile2;
+		myfile2.open(fpP);
+		myfile2<<"pulseVGS_IDS: Parameters\n";
+		myfile2<<"dt [ms], initTime [s], pulseTime [s], stepTime [s],"
+			" pulseV [V], pulseOffV [V], constV [V], nPulses, lRange, range,"
+			"comp, intTime, pulseSMU, measSMU\n";
+		myfile2<<pulseP_.dt <<','<< initTime_<<','<< pulseTime_ <<','<<stepTime_<<','
+			<<pulseV_<<','<<pulseOffV<<', [';
+		for (int smu=0; smu<4; smu++){
+			if (smu !=pulseSMU_){
+				myfile2<<stepP_.appV[smu]<<',';
+			}
+		}
+
+		myfile2<< "],"<<nPulses<<',' <<pulseP_.nPulses<<','<< pulseP_.lRange<<','
+				<<pulseP_.range<<','<<pulseP_.comp<<','<<pulseP_.intTime<<','
+				<<pulseSMU_<<','<<pulseP_.measSMU<<"\n";
+		myfile2.close()
+
+		return 0;
+	}
+
+	pulseVGS_IDS::~pulseVGS_IDS(){
+		delete pulse_;
+	}
+
+
 
 }
