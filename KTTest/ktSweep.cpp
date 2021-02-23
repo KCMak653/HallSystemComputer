@@ -67,6 +67,10 @@ namespace KT
 		//Force all SMUs to 0V
 		keith_->srcZeroAll();
 	}
+	int ktSweep::setSR(double SR){
+		SR_ = SR;
+		return 0;
+	}
 
 	int ktSweep::runSweep(double vFs[], double iMs[], double tMs[], int dMs[], int sizeArray, int iStart){
 		//First ensure that the correct array size has been passed as argument

@@ -38,7 +38,7 @@ namespace KT
 
 		//Reverse the stopV and stopV - Change direction of sweep
 		int reverseV();
-
+		int setSR(double SR);
 		//Apply a constant bias
 		//int constBias(double constV);
 

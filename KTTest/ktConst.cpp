@@ -132,6 +132,7 @@ namespace KT
 	}
 
 	int ktConst::arraySizeNeeded(){
+
 		return sizeArrayNeeded_;
 	}
 
@@ -144,6 +145,7 @@ namespace KT
 	int ktConst::setMeasTime(double t)
 	{
 		measTime_ = t;
+		sizeArrayNeeded_ = measTime_*1e3/dt_+1.5;
 		return 0;
 	}
 	

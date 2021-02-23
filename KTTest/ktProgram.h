@@ -87,7 +87,7 @@ namespace KT
 
 		//Returns the size of array needed to store measurements
 		int arraySizeNeeded();
-
+		int setSR(double SR);
 		//Save the data
 		int saveData(std::string fn, double vFs[], double iMs[], double tMs[], int dMs[], int sizeArray);
 
@@ -166,6 +166,7 @@ namespace KT
 		int runProgram(double vFs[], double iMs[], double tMs[], int dMs[], int sizeArray);
 		int arraySizeNeeded();
 		//int saveData(std::string fn, double vFs[], int sizeArray, double iMs[], double tMs[]);
+		
 		int runPulse(double iMs[], double tMs[], int dMs[], int iStart, int nS, double v);
 		int saveData(std::string fn, double vFs[], double iMs[], double tMs[], int dMs[], int sizeArray);
 		~pulseVGS_IDS();
@@ -177,7 +178,7 @@ namespace KT
 		int stepSize_;
 		int nPulses_;
 		double pulseV_;
-		double pulseOffV;
+		double pulseOffV_;
 		double initTime_;
 		double pulseTime_;
 		double stepTime_;

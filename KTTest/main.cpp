@@ -33,6 +33,7 @@
 #include <string.h>
 #include <string>
 #include "rcCmd.h"
+#include "mcCmd.h"
 #include<conio.h>
 #include<sstream>
 //struct sweepParameters
@@ -42,11 +43,39 @@
 
 int __cdecl main(void)
 {
+
+
+	MC::mcCmd md;
+	//md.setNSteps(200);
+	//md.move();
+	md.reverseDirection();
+	md.setNSteps(200);
+	md.move();
+	//md.move();
+
+	//md.moveRefPt(100);
+	int pos = md.getPosition();
+	std::cout<<pos<<std::endl;
+	/*
+	int val = 1000;
+	std::string strVal = std::to_string((long long)val);
+	std::string strB = "NW";
+	std::string strcC = "\r";
+	std::string fullV = strB + strVal + strcC;
+	const int len = fullV.length();
 	
-	//RC::rcCmd rc;
+	char char_array[len+1];
+	//strcpy(char_array, fullV.c_str());
+	std::cout<<len<<std::endl;
+	*/
+	getch();
+	/*
+	RC::rcCmd rc;
 	std::ostringstream oss;
 	std::string fname;
 	char c;
+	double SRs[] = {0.017, 0.034, 0.173, 0.349};
+	int devs[] = {5,7};
 
 	sweepVDS_IDSParameters sweepP;
 	sweepP.sweepSMU = 2;
@@ -54,7 +83,7 @@ int __cdecl main(void)
 	sweepP.measSMU = 3; //Change to 3
 	sweepP.startV = 0;
 	sweepP.stopV = -0.7;
-	sweepP.SR = 0.08;
+	sweepP.SR = 0.017;
 	sweepP.constV = .05;
 	sweepP.lRange = 3;
 	sweepP.range =3;
@@ -68,7 +97,8 @@ int __cdecl main(void)
 	
 	int arraySize = swp.arraySizeNeeded();
 	std::cout<<"Array size is: "<<arraySize<<std::endl;
-	//rc.chOn(1);
+	rc.chOn(1);
+	//rc.chOn(4);
 	//rc3.chAllOn();
 	double * vFs = new double[arraySize];
 	double * iMs = new double[arraySize];
@@ -78,38 +108,46 @@ int __cdecl main(void)
 
 
 	
-	for (int pH = 1; pH<2; pH++) { //Change to number of actual
-		for (int dev = 5; dev<8; dev++){
+	for (int pH = 0; pH<4; pH++) { //Change to number of actual
+		for (int dev = 0; dev<2; dev++){
 
-			std::cout<<"Press s to skip or g to begin test for: " <<std::endl;
-			std::cout << "Device: " << dev << " and solution: " << pH << std::endl;
-			std::cin >> c;
+			//std::cout<<"Press s to skip or g to begin test for: " <<std::endl;
+			std::cout << "Device: " << devs[dev] << " and sr: " << (int) (SRs[pH]*1e3) << std::endl;
+			//std::cin >> c;
 
-			if (c == 'g') {
-				std::cout<< "Program is running"<<std::endl;
-				swp.runProgram(vFs, iMs, tMs, dMs, arraySize);
-				oss << "PBS_CV_G6_" << std::to_string((long long) dev)<<"_Day3test";
-				fname = oss.str();
-				std::cout<<"Filename: " <<fname << std::endl;
+			//if (c == 'g') {
+			std::cout<< "Program is running"<<std::endl;
+			swp.runProgram(vFs, iMs, tMs, dMs, arraySize);
+			oss << "PBS_CV_G6_" << std::to_string((long long) devs[dev])<<"_SR_" 
+				<< std::to_string((long long) ((int)(SRs[pH]*1e3))) << "_DayX_newSU";
+			fname = oss.str();
+			std::cout<<"Filename: " <<fname << std::endl;
 
-				//rc.chOff(1);
-				//rc.chOn(2);
+			rc.chOff(1);
+			rc.chOn(4);
+			/*
 				for (int i = 0; i<arraySize; i++){
 					std::cout<<"F: :"<<vFs[i]<<std::endl;
 					std::cout<<"i: "<<iMs[i]<<std::endl;
 					std::cout<<"t: "<< tMs[i]<<std::endl;
 					std::cout<<"d: "<<dMs[i]<<std::endl;
 				}
-				swp.saveData(fname, vFs, iMs, tMs, dMs, arraySize);
-				oss.str("");
-				oss.clear();
-			}
-			else std::cout << "Skipped"  <<std::endl;
+				
+			swp.saveData(fname, vFs, iMs, tMs, dMs, arraySize);
+			oss.str("");
+			oss.clear();
+			//}
+			//else std::cout << "Skipped"  <<std::endl;
 		}
+		rc.chOff(4);
+		rc.chOn(1);
+		swp.setSR(SRs[pH]);
 	}
 
-	//rc.chOff(2);
-
+	rc.chOff(4);
+	rc.chOff(1);
+	//std::cin >> c;
+	
 	
 	delete vFs;
 	delete iMs;
@@ -132,62 +170,68 @@ int __cdecl main(void)
 	std::cout<<"Current time: " << ctime(&t) << std::endl;
 	std::cout<<"End time: " << ctime(&endt) <<std::endl;
 	*/
-	//RC::rcCmd rc3;
+	RC::rcCmd rc3;
 	/*
+	
 	constVDS_IDSParameters constP;
-	constP.constV = 0.02;
-	constP.measTime = 28800;
+	
+	
+	constP.measTime = 10;
 	constP.dt = 1000;
 	constP.lRange = 6;
 	constP.range = 6;
 	constP.comp = 4;
 	constP.intTime = 1;
-	constP.measSMU =2;
-	constP.constSMU =2;
-
+	constP.measSMU =3;
+	constP.appV[0] =0;
+	constP.appV[1] = 0.5;
+	constP.appV[2] = 5;
+	constP.appV[3] = 0;
+	//constP.constSMU =2;
+	
 	KT::constVDS_IDS swp(constP);
 
 	int arraySize = swp.arraySizeNeeded();
 	
 	std::cout<<"Array size is: "<<arraySize<<std::endl;
 	
-	//rc3.chOn(4);
+	
 	//rc3.chAllOn();
-	double * vFs = new double[arraySize];
+	//double * vFs = new double[arraySize];
 	double * iMs = new double[arraySize];
 	double * tMs = new double[arraySize];
 	int * dMs = new int[arraySize];
-	swp.runProgram(vFs, iMs, tMs, dMs, arraySize);
+	swp.runProgram(iMs, tMs, dMs, arraySize);
 	for (int i = 0; i<arraySize; i++){
-		std::cout<<"F: :"<<vFs[i]<<std::endl;
+		//std::cout<<"F: :"<<vFs[i]<<std::endl;
 		std::cout<<"i: "<<iMs[i]<<std::endl;
 		std::cout<<"t: "<< tMs[i]<<std::endl;
 		std::cout<<"d: "<<dMs[i]<<std::endl;
 	}
 
 	
-	std::string fn = "vdsidsConst";
+	std::string fn = "vdsidsConst_test";
 	//std::string fn2 = "Param_";
-	swp.saveData(fn, vFs, iMs, tMs, dMs, arraySize);
-	delete vFs;
+	swp.saveData(fn, iMs, tMs, dMs, arraySize);
+	//delete vFs;
 	delete iMs;
 	delete tMs;
 	delete dMs;
-	*/
-	/*
+	
+	
 	sweepVDS_IDSParameters sweepP;
 	sweepP.sweepSMU = 3;
 	sweepP.constSMU = 2;
-	sweepP.measSMU = 2;
-	sweepP.startV = -2;
-	sweepP.stopV = 6;
+	sweepP.measSMU = 3;
+	sweepP.startV = -1;
+	sweepP.stopV = 1;
 	sweepP.SR = 0.5;
-	sweepP.constV = .05;
+	sweepP.constV = .00;
 	sweepP.lRange = 3;
 	sweepP.range =3;
 	sweepP.comp = 3;
 	sweepP.intTime = 1;
-	sweepP.nCycles = 4;
+	sweepP.nCycles = 1;
 	sweepP.fullCycle = TRUE;
 
 	KT::sweepVDS_IDS swp(sweepP);
@@ -195,7 +239,7 @@ int __cdecl main(void)
 	
 	int arraySize = swp.arraySizeNeeded();
 	std::cout<<"Array size is: "<<arraySize<<std::endl;
-	//rc3.chOn(4);
+	rc3.chOn(1);
 	//rc3.chAllOn();
 	double * vFs = new double[arraySize];
 	double * iMs = new double[arraySize];
@@ -210,14 +254,14 @@ int __cdecl main(void)
 	}
 
 	
-	std::string fn = "vgsidstest";
+	std::string fn = "restest";
 	//std::string fn2 = "Param_";
 	swp.saveData(fn, vFs, iMs, tMs, dMs, arraySize);
 	delete vFs;
 	delete iMs;
 	delete tMs;
 	delete dMs;
-	//rc3.chAllOff();
+	rc3.chAllOff();
 
 
 	/*
@@ -238,17 +282,76 @@ int __cdecl main(void)
 	std::cout<<this_time<<std::endl;
 	std::cout<<set_time<<std::endl;
 	*/
+/*
+	pulseVGS_IDSParameters pulseP;
+	pulseP.appV[0]=0;
+	pulseP.appV[1] = 2;
+	pulseP.appV[2] = 1;
+	pulseP.appV[3]=0;
+	pulseP.pulseV = 5;
+	pulseP.pulseOffV = 1;
+	pulseP.initTime = 3;
+	pulseP.stepTime = 1;
+	pulseP.pulseTime = 1;
+	pulseP.nPulses = 4;
+	pulseP.dt = 200;
+	pulseP.pulseSMU = 3;
+	pulseP.measSMU = 2;
+	pulseP.lRange = 3;
+	pulseP.range =3;
+	pulseP.comp = 3;
+	pulseP.intTime = 1;
+
+	KT::pulseVGS_IDS pulse(pulseP);
+
+	int arraySize = pulse.arraySizeNeeded();
+	std::cout<<"Array size is: "<<arraySize<<std::endl;
+	
+	
+	double * vFs = new double[arraySize];
+	double * iMs = new double[arraySize];
+	double * tMs = new double[arraySize];
+	int * dMs = new int[arraySize];
+	//swp.runFlight(vFs, iMs, tMs, dMs, 0);
+	pulse.runProgram(vFs, iMs, tMs, dMs, arraySize);
+	
+	for (int i = 0; i<arraySize; i++){
+		std::cout<<"F: :"<<vFs[i]<<std::endl;
+		std::cout<<"i: "<<iMs[i]<<std::endl;
+		std::cout<<"t: "<< tMs[i]<<std::endl;
+		std::cout<<"d: "<<dMs[i]<<std::endl;
+	}
+	
+	//std::cout<<arraySize<<std::endl;
+	
+	std::string fn = "pulse_test";
+	//std::string fn2 = "Param_";
+	
+	pulse.saveData(fn, vFs, iMs, tMs, dMs, arraySize);
+	getch();
+	
+	delete vFs;
+	delete iMs;
+	delete tMs;
+	delete dMs;
+
+	getch();
 	/*
 	stepVDS_IDSParameters sweepP;
-	sweepP.startV = -0.6;
-	sweepP.stopV = 0;
+	sweepP.startV = 1;
+	sweepP.stopV = 2;
 	sweepP.stepV = 0.2;
 	sweepP.dt = 60;
-	sweepP.stepTime = 3600;
-	sweepP.stepSMU = 2;
-	sweepP.constSMU = 3;
-	sweepP.measSMU = 3;
-	sweepP.constV = 0.05;
+	sweepP.stepTime = 5;
+	sweepP.stepSMU = 3;
+	//sweepP.constSMU = 3;
+	sweepP.measSMU = 2;
+	//sweepP.constV = 0.05;
+	sweepP.appV[0] =  0;
+	sweepP.appV[1] = 3;
+	sweepP.appV[2] = 0.5;
+	sweepP.appV[3] = 0;
+	
 	sweepP.lRange = 3;
 	sweepP.range =3;
 	sweepP.comp = 3;

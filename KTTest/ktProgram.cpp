@@ -51,6 +51,11 @@ namespace KT
 				+(1-int(fullCycle_))*nCycles_+1;
 		return sizeArrayNeeded_;
 	}
+	
+	int sweepVDS_IDS::setSR(double SR){
+		swp_->setSR(SR);
+		return 0;
+	}
 
 	int sweepVDS_IDS::runProgram(double vFs[], double iMs[], double tMs[], int dMs[], int sizeArray)
 	{
@@ -192,8 +197,8 @@ namespace KT
 		for (int smu = 0; smu<3; smu++){
 			myfile2<<constP_.appV[smu]<<',';
 		}
-		myfile2<<constP_appV[3]<< '],'<<constP_.lRange<<','<<constP_.range<<','<<constP_.comp<<','
-				<<constP_.intTime<<','<<','<<constP_.constSMU<<','<<constP_.measSMU<<"\n";
+		myfile2<<constP_.appV[3]<< '],'<<constP_.lRange<<','<<constP_.range<<','<<constP_.comp<<','
+				<<constP_.intTime<<','<<','<<constP_.measSMU<<"\n";
 		myfile2.close();
 
 		return 0;
@@ -300,8 +305,8 @@ namespace KT
 		}
 
 		//Fill in vFs[], since ktConst does not do this
-		int iStart = 0;
-		int iV = startV_;
+		iStart = 0;
+		iV = startV_;
 		for (int i = 0; i<nCycles_; i++){ 
 			for (int j = 0; j<nS; j++){
 				for (int k=iStart; k<(iStart+stepSize_); k++){
@@ -420,7 +425,7 @@ namespace KT
 		pulseOffV_ = entries.pulseOffV;
 		pulseV_ = entries.pulseV;
 		nPulses_ = entries.nPulses;
-		pulseSMU_ = entries.pulseSMU_;
+		pulseSMU_ = entries.pulseSMU;
 
 		//Calculate size needed for each step
 
@@ -428,17 +433,17 @@ namespace KT
 
 		initSize_ = pulse_->arraySizeNeeded();
 		std::cout<<"init size: " << initSize_<<std::endl;
-		pulse->setMeasTime(stepTime_);
+		pulse_->setMeasTime(stepTime_);
 		stepSize_ = pulse_->arraySizeNeeded();
 		std::cout<<"step size: " << stepSize_<<std::endl;
-		pulse->setMeasTime(pulseTime_);
+		pulse_->setMeasTime(pulseTime_);
 		pulseSize_ = pulse_->arraySizeNeeded();
 		std::cout<<"pulse size: " << pulseSize_<<std::endl;
 		if (pulseSize_ < 2){ 
 			std::cout<<"Need longer pulse"<<std::endl;
 		}
-		sizeArrayNeeded_ = initSize_  + (stepSize_ + pulseSize_ - 2)*nPulses_;
-		runTime_ = sizeArrayNeeded_ * stepP_.dt*1e-3;
+		sizeArrayNeeded_ = initSize_  + (stepSize_ + pulseSize_ - 2)*nPulses_ + nPulses_  -1;
+		runTime_ = sizeArrayNeeded_ * pulseP_.dt*1e-3;
 	}
 
 	int pulseVGS_IDS::arraySizeNeeded(){
@@ -454,7 +459,7 @@ namespace KT
 
 		time_t tstart;
 		time_t tend;
-		time(&start):
+		time(&tstart);
 		tend = tstart+runTime_;
 		std::cout<<"Program began at: " <<ctime(&tstart);
 		std::cout<<"Program will finish at: "<<ctime(&tend);
@@ -471,16 +476,18 @@ namespace KT
 		for (int i = 0; i<nPulses_; i++){
 			pulse_->setMeasTime(pulseTime_);
 			pulse_->setV(pulseSMU_, pulseV_);
-			pulse_->runTest(iMs, tMs, dMs, pulseSize_, iStart)
+			pulse_->runTest(iMs, tMs, dMs, pulseSize_, iStart);
 			pulse_->setV(pulseSMU_, pulseOffV_);
 			iStart = iStart + pulseSize_-1;
 			pulse_->setMeasTime(stepTime_);
 			pulse_->runTest(iMs, tMs, dMs, stepSize_, iStart);
+			//std::cout<<"pre: "<<iStart<<std::endl;
 			iStart = iStart + stepSize_;
+			//std::cout<<iStart<<std::endl;
 		}
 		//Fill in vFs
 
-		int iStart = 0;
+		iStart = 0;
 		int iV = pulseOffV_;
 
 		for (int k = 0; k<initSize_; k++){
@@ -489,16 +496,17 @@ namespace KT
 		iStart = iStart + initSize_ - 1;
 
 		for (int i = 0; i<nPulses_; i++){
-			for (k = iStart; k<(iStart+pulseSize_); k++)
+			for (int k = iStart; k<(iStart+pulseSize_); k++)
 			{
 				vFs[k] = pulseV_;
 			}
 			iStart = iStart + pulseSize_ - 1;
-			for (k = iStart; k<(iStart+stepSize_); k++)
+			for (int k = iStart; k<(iStart+stepSize_); k++)
 			{
 				vFs[k] = pulseOffV_;
+				//std::cout<<"k: "<<k<<std::endl;
 			}
-			iStart = iStart + stepSize_ - 1;
+			iStart = iStart + stepSize_ ;
 		}
 
 		return 0;
@@ -517,7 +525,7 @@ namespace KT
 
 		std::ofstream myfile;
 		myfile.open(fp);
-		myfile<<"vForce ['V'], iMeas [A], time [ms], dTime [ms]\n";
+		myfile<<"vForce [V], iMeas [A], time [ms], dTime [ms]\n";
 		for (int i = 0; i<sizeArray; i++)
 		{
 			myfile<<vFs[i]<<','<<iMs[i]<<','<<tMs[i]<<','<<dMs[i]<<"\n";
@@ -531,17 +539,17 @@ namespace KT
 			" pulseV [V], pulseOffV [V], constV [V], nPulses, lRange, range,"
 			"comp, intTime, pulseSMU, measSMU\n";
 		myfile2<<pulseP_.dt <<','<< initTime_<<','<< pulseTime_ <<','<<stepTime_<<','
-			<<pulseV_<<','<<pulseOffV<<', [';
+			<<pulseV_<<','<<pulseOffV_<<', [';
 		for (int smu=0; smu<4; smu++){
 			if (smu !=pulseSMU_){
-				myfile2<<stepP_.appV[smu]<<',';
+				myfile2<<pulseP_.appV[smu]<<',';
 			}
 		}
 
-		myfile2<< "],"<<nPulses<<',' <<pulseP_.nPulses<<','<< pulseP_.lRange<<','
+		myfile2<< "],"<<nPulses_<<','<< pulseP_.lRange<<','
 				<<pulseP_.range<<','<<pulseP_.comp<<','<<pulseP_.intTime<<','
 				<<pulseSMU_<<','<<pulseP_.measSMU<<"\n";
-		myfile2.close()
+		myfile2.close();
 
 		return 0;
 	}
