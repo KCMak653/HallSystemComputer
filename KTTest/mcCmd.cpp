@@ -66,7 +66,7 @@ namespace MC
 		static char moveOriginCMD[]= "OW\r";
 		strcpy(moveOriginCMD_, moveOriginCMD);
 
-		std::cout<<"cmd: "<<moveRefPtCMD_<<std::endl;
+		//std::cout<<"cmd: "<<moveRefPtCMD_<<std::endl;
 		
 
 		//Open handle to Keithley
@@ -84,24 +84,27 @@ namespace MC
 		else
 		std::cout<<"Micro-controller properly initialized"<<std::endl;
 
-			ibclr(Dev_);
+		ibclr(Dev_);
 		if (Ibsta() & ERR)
 			{
 				GPIBCleanup("Unable to clear device");
 				mcStatus = 1;
 			}
-		//std::string strB = "MW\r";
-		//ibwrt(Dev_, strB, 3);
+		
+		
 		//ibwrt(Dev_, "NW0200\r", 7);
 		//ibwrt(Dev_, "+W\r", 3);
 		//ibwrt(Dev_, "RW500\r",6);
-		
-		ibwrt(Dev_, "AW\r", 3);
 		ibwrt(Dev_, "-W\r", 3);
+		//std::cout<<"Writing command"<<std::endl;
+		ibwrt(Dev_, setRefPtCMD_, 3);
+		ibwrt(Dev_, "-W\r", 3);
+		//ibwrt(Dev_, "AW\r", 3);
 		position_ = 0;
 		currDirec_ = -1;
 		//ibwrt(Dev_, setNStepsCMD_, setNStepsArrSize);
 		//ibwrt(Dev_, "MW\r", 3);
+		//ibwrt(Dev_, "PW-370\r", 7);
 		if (Ibsta() & ERR) {
 		  GPIBCleanup("ibwrt Error");
 		}
@@ -181,7 +184,9 @@ namespace MC
 	
 	int mcCmd::moveRefPt(int pos)
 	{
+		//ibwrt(Dev_, "AW\r", 3);
 		std::string strVal = std::to_string((long long) pos);
+		std::cout<<"StrVal: " <<strVal<<std::endl;
 		int numLen = strVal.length();
 		position_ = pos;
 		for (int i=moveRefPtInd; i<(moveRefPtArrSize-1); i++){
@@ -279,8 +284,9 @@ namespace MC
 	mcCmd::~mcCmd() {
 		   
     // The device is taken offline.
-    
+		char c;
 		ibonl(Dev_, 0);
 		std::cout<<"Micro-controller has been shut down"<<std::endl;
+		std::cin>>c;
 	}
 }

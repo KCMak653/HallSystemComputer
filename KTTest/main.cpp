@@ -34,6 +34,7 @@
 #include <string>
 #include "rcCmd.h"
 #include "mcCmd.h"
+#include "mcConst.h"
 #include<conio.h>
 #include<sstream>
 //struct sweepParameters
@@ -43,19 +44,59 @@
 
 int __cdecl main(void)
 {
-
-
+	
+	//char c;
+	MC::mcConst md(7);
+	//md.movePosition(10);
+	md.move(4,1800);
+	//std::cin>>c;
+	
+	/*
+	char c = 'm';
 	MC::mcCmd md;
+	//md.setRefPt();
+	/*
+	int conv = 370;
+	double numML = 1;
+	double mLposO = 5;
+	double mLpos = mLposO;
+	int lLim = - (mLpos - 5)*conv;
+	int rLim = (15 - mLpos)*conv;
+	std::cout<<"lLim: " << lLim <<std::endl;
+	std::cout<<"rLim: " <<rLim <<std::endl;
 	//md.setNSteps(200);
-	//md.move();
-	md.reverseDirection();
+	int pos = md.getPosition();
+	std::cout<<pos<<std::endl;//md.move();
 	md.setNSteps(200);
-	md.move();
+	while (c != 's')
+	{
+		if (c=='r'){
+			md.reverseDirection();
+		}
+		else if (c=='o')
+		{
+			md.moveOrigin();
+		}
+		else if(c=='n')
+		{
+			std::cin>>numML;
+			int nSteps = numML*conv;
+			md.setNSteps(nSteps);
+		}
+		else
+		{
+			md.move();
+		}
+		pos = md.getPosition();
+		mLpos = mLposO + pos / conv; 
+		std::cout<<"Current position: " << pos<<std::endl;
+		std::cout<<"Current mL position: " << mLpos<<std::endl;
+		std::cin >> c;
+	}
 	//md.move();
 
 	//md.moveRefPt(100);
-	int pos = md.getPosition();
-	std::cout<<pos<<std::endl;
+	
 	/*
 	int val = 1000;
 	std::string strVal = std::to_string((long long)val);
@@ -68,7 +109,7 @@ int __cdecl main(void)
 	//strcpy(char_array, fullV.c_str());
 	std::cout<<len<<std::endl;
 	*/
-	getch();
+	//getch();
 	/*
 	RC::rcCmd rc;
 	std::ostringstream oss;
@@ -170,9 +211,9 @@ int __cdecl main(void)
 	std::cout<<"Current time: " << ctime(&t) << std::endl;
 	std::cout<<"End time: " << ctime(&endt) <<std::endl;
 	*/
-	RC::rcCmd rc3;
-	/*
+	//RC::rcCmd rc3;
 	
+	/*
 	constVDS_IDSParameters constP;
 	
 	
@@ -184,8 +225,8 @@ int __cdecl main(void)
 	constP.intTime = 1;
 	constP.measSMU =3;
 	constP.appV[0] =0;
-	constP.appV[1] = 0.5;
-	constP.appV[2] = 5;
+	constP.appV[1] = 0;
+	constP.appV[2] = .2;
 	constP.appV[3] = 0;
 	//constP.constSMU =2;
 	
@@ -210,14 +251,14 @@ int __cdecl main(void)
 	}
 
 	
-	std::string fn = "vdsidsConst_test";
+	std::string fn = "vdsidsConst_test2";
 	//std::string fn2 = "Param_";
 	swp.saveData(fn, iMs, tMs, dMs, arraySize);
 	//delete vFs;
 	delete iMs;
 	delete tMs;
 	delete dMs;
-	
+	/*
 	
 	sweepVDS_IDSParameters sweepP;
 	sweepP.sweepSMU = 3;
