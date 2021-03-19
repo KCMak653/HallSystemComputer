@@ -9,6 +9,7 @@
 //COM communication parameters
 
 #define BAUDRATE_RC CBR_9600 //Baud rate
+
 #define BYTESIZE_RC 8 //Byte size
 #define STOPBITS_RC ONESTOPBIT //Number of stop bits
 #define PARITY_RC NOPARITY //Parity state
@@ -25,7 +26,7 @@ namespace RC
 {
 	rcCmd::rcCmd(){
 		std::cout<<"Opening Serial Port"<<std::endl;
-		char comPort[] = "COM3";
+		char comPort[] = "COM4";
 		char binCmd[] ="00000000";
 		strcpy(CMD_, binCmd);
 		strcpy(ComPortName_, comPort);

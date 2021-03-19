@@ -37,18 +37,103 @@
 #include "mcConst.h"
 #include<conio.h>
 #include<sstream>
+#include <thread>
+#include<vector>
 //struct sweepParameters
 //{
 	//double startV, stopV, SR;
 //};
+void print(int n, const std::string& str) {
+	for (int i = 0; i < 5; i++) {
+		std::cout << "Printing integer: " << i << std::endl;
+		std::cout << "Printing string: " << str << std::endl;
+		Sleep(1000);
+	}
+}
 
 int __cdecl main(void)
 {
-	
+	//std::vector<std::string> s = {
+	//	"edu",
+	//	"Edu",
+	//	"courx",
+	//	"are grat"
+	//};
+	//std::vector<std::thread> threads;
+
+	//for (int i = 0; i < s.size(); i++) {
+	//	threads.push_back(std::thread(print, i, s[i]));
+	//}
+
+	//for (auto& th : threads) {
+	//	th.join();
+	//}
+
+	//
 	//char c;
-	MC::mcConst md(7);
+	//MC::mcConst md(7);
 	//md.movePosition(10);
-	md.move(4,1800);
+
+	constVDS_IDSParameters constP;
+
+
+	constP.measTime = 10;
+	constP.dt = 1000;
+	constP.lRange = 6;
+	constP.range = 6;
+	constP.comp = 4;
+	constP.intTime = 1;
+	constP.measSMU = 3;
+	constP.appV[0] = 0;
+	constP.appV[1] = 0;
+	constP.appV[2] = .2;
+	constP.appV[3] = 0;
+	//constP.constSMU =2;
+
+	KT::constVDS_IDS swp(constP);
+
+	int arraySize = swp.arraySizeNeeded();
+
+	std::cout << "Array size is: " << arraySize << std::endl;
+
+
+	//rc3.chAllOn();
+	//double * vFs = new double[arraySize];
+	double* iMs = new double[arraySize];
+	double* tMs = new double[arraySize];
+	int* dMs = new int[arraySize];
+
+	//std::thread t1(&MC::mcConst::move, &md, 6.8, 5);
+	std::thread t2(&KT::constVDS_IDS::runProgram, &swp, iMs, tMs, dMs, arraySize);
+
+	//t1.join();
+	t2.join();
+
+
+	//swp.runProgram();
+	for (int i = 0; i < arraySize; i++) {
+		//std::cout<<"F: :"<<vFs[i]<<std::endl;
+		std::cout << "i: " << iMs[i] << std::endl;
+		std::cout << "t: " << tMs[i] << std::endl;
+		std::cout << "d: " << dMs[i] << std::endl;
+	}
+
+
+	std::string fn = "vdsidsConst_test2";
+	//std::string fn2 = "Param_";
+	swp.saveData(fn, iMs, tMs, dMs, arraySize);
+	//delete vFs;
+	delete iMs;
+	delete tMs;
+	delete dMs;
+	/*
+
+
+
+	
+
+
+	
 	//std::cin>>c;
 	
 	/*
@@ -111,7 +196,12 @@ int __cdecl main(void)
 	*/
 	//getch();
 	/*
+	
 	RC::rcCmd rc;
+	rc.chOff(1);
+
+
+	/*
 	std::ostringstream oss;
 	std::string fname;
 	char c;
@@ -138,7 +228,7 @@ int __cdecl main(void)
 	
 	int arraySize = swp.arraySizeNeeded();
 	std::cout<<"Array size is: "<<arraySize<<std::endl;
-	rc.chOn(1);
+	
 	//rc.chOn(4);
 	//rc3.chAllOn();
 	double * vFs = new double[arraySize];
@@ -195,7 +285,7 @@ int __cdecl main(void)
 	delete tMs;
 	delete dMs;
    /*
-	//KT::ktCmd test1;
+	KT::ktCmd test1;
 	//KT.initialize();
 	//test1.srcZeroAll();
 	//test1.vForce(2, .1);
@@ -212,8 +302,8 @@ int __cdecl main(void)
 	std::cout<<"End time: " << ctime(&endt) <<std::endl;
 	*/
 	//RC::rcCmd rc3;
-	
 	/*
+	
 	constVDS_IDSParameters constP;
 	
 	

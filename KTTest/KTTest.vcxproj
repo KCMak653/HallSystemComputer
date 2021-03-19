@@ -19,12 +19,14 @@
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
     <CharacterSet>MultiByte</CharacterSet>
+    <PlatformToolset>v142</PlatformToolset>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>MultiByte</CharacterSet>
+    <PlatformToolset>v142</PlatformToolset>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
   <ImportGroup Label="ExtensionSettings">
@@ -36,7 +38,9 @@
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
-  <PropertyGroup />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <IncludePath>C:\Program Files %28x86%29\National Instruments\Shared\ExternalCompilerSupport\C\include;$(IncludePath)</IncludePath>
+  </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
@@ -71,9 +75,6 @@
     <ClCompile Include="rcCmd.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <Object Include="..\..\..\..\..\..\..\Program Files\National Instruments\Shared\ExternalCompilerSupport\C\lib32\msvc\ni4882.obj" />
-  </ItemGroup>
-  <ItemGroup>
     <ClInclude Include="ktCmd.h" />
     <ClInclude Include="ktConst.h" />
     <ClInclude Include="ktProgram.h" />
@@ -81,6 +82,9 @@
     <ClInclude Include="mcCmd.h" />
     <ClInclude Include="mcConst.h" />
     <ClInclude Include="rcCmd.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <Object Include="..\..\..\..\..\..\Program Files (x86)\National Instruments\Shared\ExternalCompilerSupport\C\lib32\msvc\ni4882.obj" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

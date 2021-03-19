@@ -16,6 +16,8 @@ struct constParameters
 	int comp; //Compliance, max I value [A}
 	int intTime; //Integration time (1,2,3)(Fast, Normal, Long)
 	int measSMU; //SMU to measure
+	char forceMode; //Mode to force: 'V', 'I'
+	char measMode; //Mode to meas: 'V', 'I'
 };
 
 namespace KT
@@ -28,7 +30,7 @@ namespace KT
 
 		int runTest(double iMs[], double tMs[], int dMs[], int sizeArray, int iStart);
 		//int forceConstV(int constSMU2, double vConst);
-		int setV(int SMU, double v);
+		int setIV(int SMU, double v);
 
 		int setMeasTime(double t);
 
@@ -44,6 +46,8 @@ namespace KT
 		int range_; //Order of mag of I range [A]
 		int comp_; //Compliance, max I value [A}
 		int intTime_; //Integration time (1,2,3)(Fast, Normal, Long)
+		char measMode_; //Measurement mode 'V', 'I'
+		char forceMode_; //Force mode 'V', 'I'
 		KT::ktCmd* keith_; //Ptr to Keithley command
 		int dtMin_; //Minimum time of each measurement [ms]
 		int sizeArrayNeeded_; //Size of array to store measurements

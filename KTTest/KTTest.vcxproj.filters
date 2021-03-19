@@ -15,11 +15,6 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <Object Include="..\..\..\..\..\..\..\Program Files\National Instruments\Shared\ExternalCompilerSupport\C\lib32\msvc\ni4882.obj">
-      <Filter>Source Files</Filter>
-    </Object>
-  </ItemGroup>
-  <ItemGroup>
     <ClCompile Include="main.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -67,5 +62,10 @@
     <ClInclude Include="mcConst.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <Object Include="..\..\..\..\..\..\Program Files (x86)\National Instruments\Shared\ExternalCompilerSupport\C\lib32\msvc\ni4882.obj">
+      <Filter>Source Files</Filter>
+    </Object>
   </ItemGroup>
 </Project>

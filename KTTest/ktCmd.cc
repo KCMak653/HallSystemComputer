@@ -6,8 +6,8 @@
 #include <malloc.h>
 #include<iostream>
 
-
-#include "C:\Program Files\National Instruments\Shared\ExternalCompilerSupport\C\include\ni4882.h"
+#include "ni4882.h"
+//#include "C:\Program Files\National Instruments\Shared\ExternalCompilerSupport\C\include\ni4882.h"
 
 
 #define ARRAYSIZE          1024     // Size of read buffer
@@ -28,13 +28,15 @@ char ErrorMnemonic[29][5] = { "EDVR", "ECIC", "ENOL", "EADR", "EARG",
                               "ESTB", "ESRQ", "",     "",      "",
                               "ETAB", "ELCK", "EARM", "EHDL",  "",
                               "",     "EWIP", "ERST", "EPWR" };
-const int vForceVInd = 19;
-const int vForceSMUInd = 2;
-const int vForceVSize = 13;
-const int vForceArrSize = 28;
-const int vForceCompInd = 27;
+const int ivForceVInd = 19;
+const int ivForceSMUInd = 2;
+const int ivForceVSize = 13;
+const int ivForceArrSize = 28;
+const int ivForceCompInd = 27;
+const int ivForceModeInd = 1;
 
-const int iTrigArrSize = 3;
+const int ivTrigArrSize = 3;
+const int ivTrigModeInd = 1;
 
 const int setLRangeArrSize = 10;
 const int setLRangeSMUInd = 3;
@@ -44,6 +46,7 @@ const int setRangeArrSize = 16;
 const int setRangeSMUInd = 3;
 const int setRangeRangeInd = 9;
 const int setRangeCompInd = 15;
+const int setRangeModeInd = 1;
 
 const int setIntTimeArrSize = 3;
 const int setIntTimeTimeInd = 2;
@@ -53,9 +56,9 @@ namespace KT
 {	//Constructor: Define initial command character arrays
 	ktCmd::ktCmd(){
 		static char const CMD[] = "DV3, 1,+0.00000e+000, 1.0E-3\0";
-		strcpy(vForceCMD_, CMD);
+		strcpy(ivForceCMD_, CMD);
 		static char const trigCMD[] = "TI1\0";
-		strcpy(iTrigCMD_, trigCMD); 
+		strcpy(ivTrigCMD_, trigCMD); 
 		static char lRangeCMD[] = "RG 1, 1E-3\0";
 		strcpy(setLRangeCMD_, lRangeCMD);
 		static char rangeCMD[] = "RI 1, 1E-3, 1E-3\0";
@@ -116,7 +119,7 @@ namespace KT
 	int ktCmd::setComp(const int SMU, const int comp)
 	{
 		char j = '0' + comp;
-		vForceCMD_[vForceCompInd] = j;
+		ivForceCMD_[ivForceCompInd] = j;
 		setRangeCMD_[setRangeCompInd] = j;
 		return 0;
 	}
@@ -153,6 +156,20 @@ namespace KT
 		return 0;
 	}
 
+	int ktCmd::setForceMode(const char mode)
+	{
+		ivForceCMD_[ivForceModeInd] = mode;
+		return 0;
+	}
+
+
+	int ktCmd::setMeasMode(const char mode)
+	{
+		ivTrigCMD_[1] = mode;
+		setRangeCMD_[setRangeModeInd] = mode;
+		return 0;
+	}
+
 	int ktCmd::setIntTime(const int mode)
 	{
 		char j = '0' + mode;
@@ -166,8 +183,8 @@ namespace KT
 		updateCMD(0.0);
 		for (int i=1; i<5; i++){
 			char j = '0'+ i;
-			vForceCMD_[2] = j;
-			ibwrt(Dev_, vForceCMD_, vForceArrSize);
+			ivForceCMD_[2] = j;
+			ibwrt(Dev_, ivForceCMD_, ivForceArrSize);
 		}
 		std::cout<<"Keithley sourced to 0V"<<std::endl;
 		return 0;
@@ -179,23 +196,23 @@ namespace KT
 		std::string asStr = std::to_string(static_cast<long double>(val));
 		int numLen = asStr.length();
 		//std::cout<<numLen<<std::endl;
-		for (int i=0; i<vForceVSize; i++){
+		for (int i=0; i<ivForceVSize; i++){
 			if (i > (numLen-1))
 			{
-				vForceCMD_[vForceVInd-i] =' ';
+				ivForceCMD_[ivForceVInd-i] =' ';
 			} else {
-				vForceCMD_[vForceVInd-i] = asStr[(numLen-1)-i];
+				ivForceCMD_[ivForceVInd-i] = asStr[(numLen-1)-i];
 			}
 		}
 		//std::cout<<&vForceCMD_<<std::endl;
 		return 0;
 	}
 
-	int ktCmd::vForce(int SMU, double vF){
+	int ktCmd::ivForce(int SMU, double vF){
 		char j = '0' + SMU;
-		vForceCMD_[vForceSMUInd] = j;
+		ivForceCMD_[ivForceSMUInd] = j;
 		updateCMD(vF);
-		ibwrt(Dev_, vForceCMD_, vForceArrSize);
+		ibwrt(Dev_, ivForceCMD_, ivForceArrSize);
 		//std::cout<<vForceCMD_<<std::endl;
 		//GPIBCleanup(Dev, "Unable to write to multimeter");
 		if (Ibsta() & ERR)
@@ -206,10 +223,11 @@ namespace KT
 		return 0;
 	}
 	
-	int ktCmd::iMeas(int SMU, double & measVal){
+	int ktCmd::ivMeas(int SMU, double & measVal){
 		char j = '0' + SMU;
-		iTrigCMD_[2] = j;
-		ibwrt(Dev_, iTrigCMD_, iTrigArrSize);
+		ivTrigCMD_[2] = j;
+		
+		ibwrt(Dev_, ivTrigCMD_, ivTrigArrSize);
 		ibrd(Dev_, ValueStr, ARRAYSIZE);
 		if (Ibsta() & ERR)
 		{
@@ -220,6 +238,8 @@ namespace KT
 		//sscanf(ValueStr, "%*s%f", &measVal);
 		return 0;
 	}
+
+
 	int ktCmd::sendPersCmd(char cmd[], int len){
 		
 		ibwrt(Dev_, cmd, len);

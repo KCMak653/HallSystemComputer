@@ -31,6 +31,12 @@ namespace KT
 		//Set the current range
 		int setRange(const int SMU, const int range);
 
+		//Set the measurement mode
+		int setMeasMode(const char mode);
+
+		//Set the force mode
+		int setForceMode(const char mode);
+
 		//Set the integration time:
 			// 1: Short 0.1 PLC
 			// 2: Normal 1.0 PLC
@@ -38,7 +44,7 @@ namespace KT
 		int setIntTime(const int intTime);
 
 		//Force a voltage
-		int vForce(int SMU, double vF);
+		int ivForce(int SMU, double vF);
 
 		//Send any command to the Keithley
 		int sendPersCmd(char cmd[], int len);
@@ -49,7 +55,8 @@ namespace KT
 		//int tMeas(double &measT);
 
 		//Measure current
-		int iMeas(int SMU, double & measVal);
+		int ivMeas(int SMU, double & measVal);
+
 
 		//Status of communication
 		bool ktStatus;
@@ -58,7 +65,7 @@ namespace KT
 		~ktCmd();
 	private:
 		//Character array for force command
-		char vForceCMD_[29];
+		char ivForceCMD_[29];
 
 		//Function called to close device handle if there is an error
 		void GPIBCleanup(const char * ErrorMsg);
@@ -67,7 +74,7 @@ namespace KT
 		int updateCMD(double val);
 		//char iForceCMD_[];
 		//char vMeasCMD_[];
-		char iTrigCMD_[4];
+		char ivTrigCMD_[4];
 		char setRangeCMD_[17];
 		char setLRangeCMD_[11];
 		char setIntTimeCMD_[4];

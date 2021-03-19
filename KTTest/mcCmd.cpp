@@ -7,7 +7,7 @@
 #include<iostream>
 
 
-#include "C:\Program Files\National Instruments\Shared\ExternalCompilerSupport\C\include\ni4882.h"
+#include "ni4882.h"
 
 
 #define ARRAYSIZE          1024     // Size of read buffer
@@ -287,6 +287,6 @@ namespace MC
 		char c;
 		ibonl(Dev_, 0);
 		std::cout<<"Micro-controller has been shut down"<<std::endl;
-		std::cin>>c;
+
 	}
 }

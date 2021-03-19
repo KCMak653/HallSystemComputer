@@ -23,11 +23,16 @@ namespace KT
 		range_ = entries.range;
 		comp_ = entries.comp;
 		intTime_ = entries.intTime;
+		forceMode_ = entries.forceMode;
+		measMode_ = entries.measMode;
 
 		//Open handle to Keithley
 		keith_ = new KT::ktCmd();
 
 		//Set the machine parameters: Compliance, range, integration time 
+		
+		keith_->setForceMode(forceMode_);
+		keith_->setMeasMode(measMode_);
 		keith_->setComp(measSMU_,comp_);
 		keith_->setLRange(measSMU_, lRange_);
 		//keith_.setRange(measSMU_, range_); Command not recognized?????
@@ -87,7 +92,7 @@ namespace KT
 		//Apply constant bias
 		//std::cout<<"V: "<<constV_<<std::endl;
 		for (int smu = 0; smu<4; smu++){
-			keith_->vForce(smu+1,appV_[smu]);
+			keith_->ivForce(smu+1,appV_[smu]);
 		}
 		
 		
@@ -99,7 +104,7 @@ namespace KT
 		//vFs[iStart] = v;
 
 		//Measure and store current
-		keith_->iMeas(measSMU_, iMs[iStart]);
+		keith_->ivMeas(measSMU_, iMs[iStart]);
 		
 		//Record the time
 		tMs[iStart] = (double)(clock());
@@ -120,7 +125,7 @@ namespace KT
 		//the indices of where to store data in array will differe by iStart
 		for (int i=(iStart+1); i<(iStart+sizeArray); i++){
 			//vFs[i] = v;
-			keith_->iMeas(measSMU_, iMs[i]);
+			keith_->ivMeas(measSMU_, iMs[i]);
 			tMs[i] = (double)(clock());
 			delayT = dt_*(i+1) - tMs[i];
 			if (delayT < 0) {delayT = 0;}
@@ -136,7 +141,7 @@ namespace KT
 		return sizeArrayNeeded_;
 	}
 
-	int ktConst::setV(int SMU, double v)
+	int ktConst::setIV(int SMU, double v)
 	{
 		appV_[SMU-1] = v;
 		return 0;

@@ -6,9 +6,6 @@
 
 #pragma once
 
-extern const int vForceVInd;
-extern const int vForceSMUInd;
-extern const int vForceVSize;
 
 namespace MC
 {

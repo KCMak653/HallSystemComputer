@@ -81,7 +81,7 @@ namespace KT
 		
 		//Apply constant bias if there is one:
 		if ((constSMU_!=0) & (constSMU_ != sweepSMU_)){
-			keith_->vForce(constSMU_,constV_);
+			keith_->ivForce(constSMU_,constV_);
 		}
 		
 		//Run the sweep. 
@@ -100,7 +100,7 @@ namespace KT
 		clock_t clk2 = clk;
 		
 		//Force voltage
-		keith_->vForce(sweepSMU_,v);
+		keith_->ivForce(sweepSMU_,v);
 
 		//Record voltage
 		vFs[iStart] = v;
@@ -109,7 +109,7 @@ namespace KT
 		v = v + stepV_;		
 		
 		//Measure and store current
-		keith_->iMeas(measSMU_, iMs[iStart]);
+		keith_->ivMeas(measSMU_, iMs[iStart]);
 		
 		//Record the time
 		tMs[iStart] = (double)(clock());
@@ -130,10 +130,10 @@ namespace KT
 		//the indices of where to store data in array will differe by iStart
 		for (int i=(iStart+1); i<(iStart+sizeArray); i++){
 			
-			keith_->vForce(sweepSMU_,v);
+			keith_->ivForce(sweepSMU_,v);
 			vFs[i] = v;
 			v = v + stepV_;		
-			keith_->iMeas(measSMU_, iMs[i]);
+			keith_->ivMeas(measSMU_, iMs[i]);
 			tMs[i] = (double)(clock());
 			delayT = dtMeas_*(i+1) - tMs[i];
 			if (delayT < 0) {delayT = 0;}

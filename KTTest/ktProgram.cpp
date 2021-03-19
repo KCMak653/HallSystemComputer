@@ -92,7 +92,7 @@ namespace KT
 	int sweepVDS_IDS::saveData(std::string fn, double vFs[], double iMs[], double tMs[], int dMs[], int sizeArray)
 	{
 		//Data directory
-		std::string direc = "C:/Documents and Settings/NanoHall_User/My Documents/Data-Kristin/Keithley/";
+		std::string direc = "C:/Users/Nanotech/Documents/KMData/Keithley/";
 		//save as text file
 		std::string frmt = ".csv";
 
@@ -141,6 +141,8 @@ namespace KT
 		constP_.range = entries.range;
 		constP_.comp = entries.comp;
 		constP_.intTime = entries.intTime;
+		constP_.measMode = 'I';
+		constP_.forceMode = 'V';
 
 		//Initialize the const object
 		cnst_ = new KT::ktConst(constP_);
@@ -172,7 +174,7 @@ namespace KT
 	{
 		
 		//Data directory
-		std::string direc = "C:/Documents and Settings/NanoHall_User/My Documents/Data-Kristin/Keithley/";
+		std::string direc = "C:/Users/Nanotech/Documents/KMData/Keithley/";
 		//save as text file
 		std::string frmt = ".csv";
 
@@ -225,6 +227,8 @@ namespace KT
 		stepP_.range = entries.range;
 		stepP_.comp = entries.comp;
 		stepP_.intTime = entries.intTime;
+		stepP_.measMode = 'I';
+		stepP_.forceMode = 'V';
 
 		startV_ = entries.startV;
 		stopV_ = entries.stopV;
@@ -334,12 +338,12 @@ namespace KT
 
 	int stepVDS_IDS::runFlight(double iMs[], double tMs[], int dMs[], int iStart, int nS, double v)
 	{
-		step_->setV(stepSMU_, v);
+		step_->setIV(stepSMU_, v);
 		for (int i=0; i<nS; i++){
 			std::cout<<iStart<<std::endl;
 			step_->runTest(iMs, tMs, dMs, stepSize_, iStart);
 			v = v + stepV_;
-			step_->setV(stepSMU_, v);
+			step_->setIV(stepSMU_, v);
 			iStart = iStart + stepSize_- 1;
 		}
 		return iStart;
@@ -357,7 +361,7 @@ namespace KT
 	{
 		
 		//Data directory
-		std::string direc = "C:/Documents and Settings/NanoHall_User/My Documents/Data-Kristin/Keithley/";
+		std::string direc = "C:/Users/Nanotech/Documents/KMData/Keithley/";
 		//save as text file
 		std::string frmt = ".csv";
 
@@ -414,7 +418,8 @@ namespace KT
 		pulseP_.range = entries.range;
 		pulseP_.comp = entries.comp;
 		pulseP_.intTime = entries.intTime;
-
+		pulseP_.measMode = 'I';
+		pulseP_.forceMode = 'V';
 
 		pulseP_.measTime = entries.initTime;
 
@@ -475,9 +480,9 @@ namespace KT
 
 		for (int i = 0; i<nPulses_; i++){
 			pulse_->setMeasTime(pulseTime_);
-			pulse_->setV(pulseSMU_, pulseV_);
+			pulse_->setIV(pulseSMU_, pulseV_);
 			pulse_->runTest(iMs, tMs, dMs, pulseSize_, iStart);
-			pulse_->setV(pulseSMU_, pulseOffV_);
+			pulse_->setIV(pulseSMU_, pulseOffV_);
 			iStart = iStart + pulseSize_-1;
 			pulse_->setMeasTime(stepTime_);
 			pulse_->runTest(iMs, tMs, dMs, stepSize_, iStart);
@@ -516,7 +521,7 @@ namespace KT
 	int pulseVGS_IDS::saveData(std::string fn, double vFs[], double iMs[], double tMs[], int dMs[], int sizeArray)
 	{
 		//Data Directory
-		std::string direc = "C:/Documents and Settings/NanoHall_User/My Documents/Data-Kristin/Keithley/";
+		std::string direc = "C:/Users/Nanotech/Documents/KMData/Keithley/";
 		//save as text file
 		std::string frmt = ".csv";
 		
