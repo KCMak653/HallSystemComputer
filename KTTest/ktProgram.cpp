@@ -15,25 +15,46 @@
 
 namespace KT
 {
-	sweepVDS_IDS::sweepVDS_IDS(const sweepVDS_IDSParameters &entries)
+	sweepProgram::sweepProgram(const sweepProgramParameters &entries)
 	{
 		//Set all private member variables to inputs
-		sweepP_.sweepSMU = entries.sweepSMU;
-		sweepP_.constSMU = entries.constSMU;
-		sweepP_.measSMU = entries.measSMU;
+		//sweepP_.sweepSMU = entries.sweepSMU;
+		//sweepP_.constSMU = entries.constSMU;
+		//sweepP_.measSMU = entries.measSMU;
+		
+		for (int i = 0; i<4; i++){
+			sweepP_.appV[i] = entries.appV[i];
+			sweepP_.range[i] = entries.range[i];
+			sweepP_.comp[i] = entries.comp[i];
+			sweepP_.forceMode[i] = entries.forceMode[i];
+			sweepP_.measMode[i] = entries.measMode[i];
+			sweepP_.sweepSMU[i] = entries.sweepSMU[i];
+			sweepSMU_[i]=entries.sweepSMU[i];
+		}
+
+		
+		
+		
 		sweepP_.SR = entries.SR;
-		sweepP_.constV = entries.constV;
+		//sweepP_.constV = entries.constV;
 		sweepP_.startV = entries.startV;
 		sweepP_.stopV = entries.stopV;
 		sweepP_.lRange = entries.lRange;
-		sweepP_.range = entries.range;
-		sweepP_.comp = entries.comp;
+		//sweepP_.range = entries.range;
+		//sweepP_.comp = entries.comp;
 		sweepP_.intTime = entries.intTime;
 
 		fullCycle_ = entries.fullCycle;
 		nCycles_ = entries.nCycles;
 		
-		
+		int k = 0;
+		for (int i = 0; i<4; i++){
+			if (entries.measMode[i] ! = 'N'){
+				chMeas_[k] = i+1;
+				k++;
+			}
+		}
+		nMeasChannels_ = k;
 		//Initialize the sweep object
 		swp_ = new KT::ktSweep(sweepP_);
 
@@ -45,26 +66,42 @@ namespace KT
 			*(int(fullCycle_)+1)*nCycles_;
 	}
 
-	int sweepVDS_IDS::arraySizeNeeded()
+	int sweepProgram::arraySizeNeeded()
 	{
 		int sizeArrayNeeded_ = (swpSize_ - 1)*(int(fullCycle_)+1)*nCycles_
 				+(1-int(fullCycle_))*nCycles_+1;
 		return sizeArrayNeeded_;
 	}
 	
-	int sweepVDS_IDS::setSR(double SR){
+	int sweepProgram::setSR(double SR){
 		swp_->setSR(SR);
 		return 0;
 	}
 
-	int sweepVDS_IDS::runProgram(double vFs[], double iMs[], double tMs[], int dMs[], int sizeArray)
+	int sweepProgram::runProgram(double vFs[], double iMs[], double tMs[], int dMs[], int sizeArray)
 	{
+		
+		int smuInd = 0;
+		int k = 0;
+		while (smuInd == 0){
+			if (sweepSMU_[k]){
+				smuInd = k+1;
+			}
+			k++;
+		}
+		
+		
 		time_t tstart;
 		time_t tend;
 		time(&tstart);
 		tend = tstart+runTime_;
 		std::cout<<"Program began at: " <<ctime(&tstart);
 		std::cout<<"Program will finish at: " <<ctime(&tend);
+
+
+		//Initialize channels, apply biases
+		swp_-> initializeChannels();
+		swp_->setForceParams(smuInd);
 		//Set initial indice
 		int iStart = 0;
 
@@ -89,7 +126,7 @@ namespace KT
 		return 0;
 	}
 
-	int sweepVDS_IDS::saveData(std::string fn, double vFs[], double iMs[], double tMs[], int dMs[], int sizeArray)
+	int sweepProgram::saveData(std::string fn, double vFs[], double iMs[], double tMs[], int dMs[], int sizeArray)
 	{
 		//Data directory
 		std::string direc = "C:/Users/Nanotech/Documents/KMData/Keithley/";
@@ -102,63 +139,126 @@ namespace KT
 
 		std::ofstream myfile;
 		myfile.open(fp);
-		myfile<<"vForce [V], iMeas [A], time [ms], dTime [ms]\n";
+		myfile<<"vForce [V], ";
+		for (int n = 0; n < nMeasChannels_; n++)
+		{
+			myfile<<"iMeas [A] - SMU " << chMeas_[n] << ", ";
+		} 
+		myfile << "time [ms], dTime [ms]\n";
+
 		for (int i = 0; i<sizeArray; i++)
 		{
-			//std::cout<<"Saving line: "<< i << " of " << sizeArray <<std::endl;
-			myfile<<vFs[i]<<','<<iMs[i]<<','<<tMs[i]<<','<<dMs[i]<<"\n";
+			myfile<<vFs[i]<<',';
+			for (int n = 0; n < nMeasChannels_; n++){
+				myfile<<iMs[i*nMeasChannels_ + n]<<','
+			}
+			<<tMs[i]<<','<<dMs[i]<<"\n";
 		}
+
 		myfile.close();
 
 		//std::string fnP = "P_" + fn;
 		std::ofstream myfile2;
 		myfile2.open(fpP);
-		myfile2<<"startV [V], stopV [V], SR [V/s], constV [V], lRange, range, comp, intTime, sweepSMU, constSMU, measSMU, nCycles, fullCycle\n";
-		myfile2<<sweepP_.startV<<","<<sweepP_.stopV<<','<<sweepP_.SR<<','<<sweepP_.constV<<','
-				<<sweepP_.lRange<<','<<sweepP_.range<<','<<sweepP_.comp<<','
-				<<sweepP_.intTime<<','<<sweepP_.sweepSMU<<','<<sweepP_.constSMU<<','<<sweepP_.measSMU<<','
-				<<nCycles_<<','<<fullCycle_<<"\n";
+		myfile2<<"sweepProgram: Parameters\n";
+		myfile2<<"startV [V], stopV [V], SR [V/s], constV [V/A], lRange, range, comp, intTime, sweepSMU, forceMode, measMode, nCycles, fullCycle\n";
+		myfile2<<sweepP_.startV<<","<<sweepP_.stopV<<','<<sweepP_.SR<<', [';
+		
+		for (int smu=0; smu<4; smu++){
+			myfile2<<sweepP_.appV[smu]<<',';
+		}
+		myfile2<<sweepP_.appV[3]<<'] ,'
+				<<sweepP_.lRange<<',[';
+					
+		for (int smu = 0; smu<3; smu++){
+				myfile2<<sweepP_.range[smu]<<',';
+		}
+		myfile2<<sweepP_.range[3]<<'], ['
+			
+		for (int smu = 0; smu<3; smu++){
+			myfile2<<sweepP_.comp[smu]<<',';
+		}
+
+		myfile2<<sweepP_.comp[3]<<"], "
+				<<sweepP_.intTime<<', ['
+		
+		for (int smu = 0; smu<3; smu++){
+			myfile2<<sweepSMU_[smu]<<',';
+		}		
+		myfile2<<sweepSMU_[3]<< '], ['
+		
+		
+		for (int smu = 0; smu<3; smu++){
+			myfile2<<sweepP_.forceMode[smu]<<',';
+		}
+
+		myfile2 << sweepP_.forceMode[3]<<"], [";
+
+		for (int smu = 0; smu<3; smu++){
+			myfile2<<sweepP_.measMode[smu]<<',';
+		}
+
+		myfile2 << sweepP_.measMode[3]<<"], ";
+		
+		myfile2<<nCycles_<<','<<fullCycle_<<"\n";
 		myfile2.close();
 
 		return 0;
 	}
 
-	sweepVDS_IDS::~sweepVDS_IDS(){
+	sweepProgram::~sweepProgram(){
 		delete swp_;
 	}
 
-	constVDS_IDS::constVDS_IDS(const constVDS_IDSParameters &entries){
+	constProgram::constProgram(const constProgramParameters &entries){
 
 		//Set all private member variables to inputs
 		constP_.dt = entries.dt;
 		//constP_.constSMU = entries.constSMU;
-		constP_.measSMU = entries.measSMU;
+		//constP_.measSMU = entries.measSMU;
 		constP_.measTime = entries.measTime;
 		for (int i = 0; i<4; i++){
 			constP_.appV[i] = entries.appV[i];
+			constP_.forceMode[i] = entries.forceMode[i];
+			constP_.measMode[i] = entries.measMode[i];
+			constP_.range[i] = entries.range[i];
+			constP_.comp[i] = entries.comp[i];
 		}
 		constP_.lRange = entries.lRange;
-		constP_.range = entries.range;
-		constP_.comp = entries.comp;
+		//constP_.range = entries.range;
+		//constP_.comp = entries.comp;
 		constP_.intTime = entries.intTime;
-		constP_.measMode = 'I';
-		constP_.forceMode = 'V';
-
+		//constP_.measMode = 'I';
+		//constP_.forceMode = 'V';
+		//constP_.nChannels = entries.nChannels;
 		//Initialize the const object
 		cnst_ = new KT::ktConst(constP_);
 
 		//Find the size of array needed to store values
 		cnstSize_ = cnst_->arraySizeNeeded();
 		runTime_ = constP_.measTime;
+		//nChannels_ = constP_.nChannels;
+
+
+		int k = 0;
+		for (int i = 0; i<4; i++){
+			if ((measMode_[i] == 'I')|(measMode_[i] == 'V')){
+				chMeas_[k] = i+1;
+				k++;
+			}
+		}
+
+		nMeasChannels_ = k;
 	}
 
-	int constVDS_IDS::arraySizeNeeded()
+	int constProgram::arraySizeNeeded()
 	{
 		return cnstSize_;
 	}
 
-	int constVDS_IDS::runProgram(double iMs[], double tMs[], int dMs[], int sizeArray)
+	int constProgram::runProgram(double iMs[], double tMs[], int dMs[], int sizeArray)
 	{
+		cnst_->initializeChannels();
 		time_t tstart;
 		time_t tend;
 		time(&tstart);
@@ -170,7 +270,7 @@ namespace KT
 		return 0;
 	}
 
-	int constVDS_IDS::saveData(std::string fn, double iMs[], double tMs[], int dMs[], int sizeArray)
+	int constProgram::saveData(std::string fn, double iMs[], double tMs[], int dMs[], int sizeArray)
 	{
 		
 		//Data directory
@@ -184,62 +284,110 @@ namespace KT
 
 		std::ofstream myfile;
 		myfile.open(fp);
-		myfile<<"iMeas [A], time [ms], dTime [ms]\n";
+
+		for (int n = 0; n < nMeasChannels_; n++)
+		{
+			myfile<<"iMeas [A] - SMU " << chMeas_[n] << ", ";
+		} 
+		myfile << "time [ms], dTime [ms]\n";
 		for (int i = 0; i<sizeArray; i++)
 		{
-			myfile<<iMs[i]<<','<<tMs[i]<<','<<dMs[i]<<"\n";
+			for (int n = 0; n < nMeasChannels_; n++){
+				myfile<<iMs[i*nMeasChannels_ + n]<<','
+			}	
+			myfile<<tMs[i]<<','<<dMs[i]<<"\n";
 		}
 		myfile.close();
 
 		//std::string fnP = "P_" + fn;
 		std::ofstream myfile2;
 		myfile2.open(fpP);
-		myfile2<<"dt [ms], measTime [s], constV [V], lRange, range, comp, intTime, measSMU\n";
+		myfiel2<<"constProgram: Parameters]\n";
+		myfile2<<"dt [ms], measTime [s], constV [V/A], lRange, range, comp, intTime,"
+				" forceMode, measMode\n";
 		myfile2<<constP_.dt<<","<<constP_.measTime<<', [';
 		for (int smu = 0; smu<3; smu++){
 			myfile2<<constP_.appV[smu]<<',';
 		}
-		myfile2<<constP_.appV[3]<< '],'<<constP_.lRange<<','<<constP_.range<<','<<constP_.comp<<','
-				<<constP_.intTime<<','<<','<<constP_.measSMU<<"\n";
+		myfile2<<constP_.appV[3]<< '],'<<constP_.lRange<<', [';
+		
+		for (int smu = 0; smu<3; smu++){
+			myfile2<<constP_.range[smu]<<',';
+		}
+		myfile2<<constP_.range[3]<<'], ['
+		
+		for (int smu = 0; smu<3; smu++){
+			myfile2<<constP_.comp[smu]<<',';
+		}
+
+		myfile2<<constP_.comp[3]<<'], '
+				<<constP_.intTime<<', ['
+
+		for (int smu = 0; smu<3; smu++){
+			myfile2<<constP_.forceMode[smu]<<',';
+		}		
+		myfile2<<constP_.forceMode[3]<< '], ['
+		
+		for (int smu = 0; smu<3; smu++){
+			myfile2<<constP_.measMode[smu]<<',';
+		}
+
+		myfile2 << constP_.measMode[3]<<"]\n";
 		myfile2.close();
 
 		return 0;
 	}
 
-	constVDS_IDS::~constVDS_IDS(){
+	constProgram::~constProgram(){
 		delete cnst_;
 	}
 
-	stepVDS_IDS::stepVDS_IDS(const stepVDS_IDSParameters &entries){
+	stepProgram::stepProgram(const stepProgramParameters &entries){
 
 		//Set all private member variables to inputs
 		
 		stepP_.dt = entries.dt;
 		for (int smu=0; smu<4; smu++){
 			stepP_.appV[smu] = entries.appV[smu];
+			stepP_.range[smu] = entries.range[smu];
+			stepP_.comp[smu] = entries.comp[smu];
+			stepP_.measMode[smu] = entries.measMode[smu];
+			stepP_.forceMode[smu] = entries.forceMode[smu];
+			stepSMU_[smu] = entries.stepSMU[smu];
 		}
-		stepP_.appV[entries.measSMU-1] = entries.startV;
+		//stepP_.appV[entries.measSMU-1] = entries.startV;
 		//stepP_.constSMU[i] = entries.stepSMU;
-		stepP_.measSMU = entries.measSMU;
+		//stepP_.measSMU = entries.measSMU;
 		stepP_.measTime = entries.stepTime;
-		
+		//stepP_.nChannels = entries.nChannels;
 		stepP_.lRange = entries.lRange;
-		stepP_.range = entries.range;
-		stepP_.comp = entries.comp;
+		//stepP_.range = entries.range;
+		//stepP_.comp = entries.comp;
 		stepP_.intTime = entries.intTime;
-		stepP_.measMode = 'I';
-		stepP_.forceMode = 'V';
+		//stepP_.measMode = 'I';
+		//stepP_.forceMode = 'V';
 
 		startV_ = entries.startV;
 		stopV_ = entries.stopV;
 		stepV_ = entries.stepV;
-		stepSMU_ = entries.stepSMU;
+		//stepSMU_ = entries.stepSMU;
 		//constV_ = entries.constV;
 		nCycles_ = entries.nCycles;
 		fullCycle_ = entries.fullCycle;
+		//nChannels_ = entries.nChannels;
 
 		//constSMU_ = entries.constSMU;
+		int k = 0;
+		for (int i = 0; i<4; i++){
+			if ((measMode_[i] == 'I')|(measMode_[i] == 'V')){
+				chMeas_[k] = i+1;
+				k++;
+			}
+		}
 
+		nMeasChannels_ = k;
+
+		//Get ordered force channels
 		step_ = new KT::ktConst(stepP_);
 
 		stepSize_ = step_->arraySizeNeeded();
@@ -258,16 +406,27 @@ namespace KT
 		
 	}
 
-	int stepVDS_IDS::arraySizeNeeded(){
+	int stepProgram::arraySizeNeeded(){
 		return sizeArrayNeeded_;
 	}
 
-	int stepVDS_IDS::runProgram(double vFs[], double iMs[], double tMs[], int dMs[], int sizeArray)
+	int stepProgram::runProgram(double vFs[], double iMs[], double tMs[], int dMs[], int sizeArray)
 	{
 		if (sizeArray != sizeArrayNeeded_){
 			std::cout<<"Incorrect Array size"<<std::endl;
 			return 1;
 		}
+		//Isolate first Step SMU index to set force param(range, comp, etc) correctly
+		int smuInd = 0;
+		int k = 0;
+		while (smuInd == 0){
+			if (stepSMU_[k]){
+				smuInd = k+1;
+			}
+			k++;
+		}
+
+
 		time_t tstart;
 		time_t tend;
 		time(&tstart);
@@ -275,6 +434,8 @@ namespace KT
 		std::cout<<"Program began at: " <<ctime(&tstart);
 		std::cout<<"Program will finish at: " <<ctime(&tend);
 		//Set initial indice
+		stepP_ -> initializeChannels();
+		stepP_-> setForceParams(smuInd);
 		int iStart = 0;
 		int nS = nSteps_;
 		double iV = startV_;
@@ -336,7 +497,7 @@ namespace KT
 		return 0;
 	}
 
-	int stepVDS_IDS::runFlight(double iMs[], double tMs[], int dMs[], int iStart, int nS, double v)
+	int stepProgram::runFlight(double iMs[], double tMs[], int dMs[], int iStart, int nS, double v)
 	{
 		step_->setIV(stepSMU_, v);
 		for (int i=0; i<nS; i++){
@@ -349,7 +510,7 @@ namespace KT
 		return iStart;
 	}
 
-	void stepVDS_IDS::reverseV()
+	void stepProgram::reverseV()
 	{
 		double temp = startV_;
 		startV_ = stopV_;
@@ -357,7 +518,7 @@ namespace KT
 		stepV_ = -1*stepV_;
 	}
 
-	int stepVDS_IDS::saveData(std::string fn, double vFs[], double iMs[], double tMs[], int dMs[], int sizeArray)
+	int stepProgram::saveData(std::string fn, double vFs[], double iMs[], double tMs[], int dMs[], int sizeArray)
 	{
 		
 		//Data directory
@@ -371,55 +532,96 @@ namespace KT
 
 		std::ofstream myfile;
 		myfile.open(fp);
-		myfile<<"vForce [V], iMeas [A], time [ms], dTime [ms]\n";
+		myfile<<"vForce [V], ";
+		for (int n = 0; n < nMeasChannels_; n++)
+		{
+			myfile<<"iMeas [A] - SMU " << chMeas_[n] << ", ";
+		} 
+		myfile << "time [ms], dTime [ms]\n";
+
 		for (int i = 0; i<sizeArray; i++)
 		{
-			myfile<<vFs[i]<<','<<iMs[i]<<','<<tMs[i]<<','<<dMs[i]<<"\n";
+			myfile<<vFs[i]<<',';
+			for (int n = 0; n < nMeasChannels_; n++){
+				myfile<<iMs[i*nMeasChannels_ + n]<<','
+			}
+			<<tMs[i]<<','<<dMs[i]<<"\n";
 		}
 		myfile.close();
 
 		//std::string fnP = "P_" + fn;
 		std::ofstream myfile2;
 		myfile2.open(fpP);
-		myfile2<<"stepVDS_IDS: Parameters\n";
+		myfile2<<"stepProgram: Parameters\n";
 		myfile2<<"dt [ms], stepTime [s], startV [V], stopV [V], stepV [V], "
 			"constV [V], nCycles, fullCycle, lRange, range, comp, "
-			"intTime, stepSMU, measSMU\n";
+			"intTime, stepSMU, forceMode, measMode\n";
 		myfile2<<stepP_.dt<<","<<stepP_.measTime<<','<<startV_<<','<<stopV_<<','<<stepV_<<', [';
-		for (int smu = 0; smu<4; smu++){
-			if (smu != stepSMU_){
-				myfile2<<stepP_.appV[smu]<<',';
-			}
+		
+		for (int smu = 0; smu<3; smu++){
+			myfile2<<stepP_.appV[smu]<<',';
 		}
-		myfile2 <<"],"<< nCycles_<<','<<fullCycle_<<','
-				<<stepP_.lRange<<','<<stepP_.range<<','<<stepP_.comp<<','
-				<<stepP_.intTime<<',' << stepSMU_<<','
-				<<stepP_.measSMU<<"\n";
+		myfile2 <<stepP_.appV[3]<<"],"<< nCycles_<<','<<fullCycle_<<','
+				<<stepP_.lRange<<", [";
+					
+		for (int smu = 0; smu<3; smu++){
+			myfile2<<stepP_.range[smu]<<',';
+		}
+		myfile2<<stepP_.range[3]<<'], ['
+		
+		for (int smu = 0; smu<3; smu++){
+			myfile2<<stepP_.comp[smu]<<',';
+		}
+
+		myfile2<<stepP_.comp[3]<<"], "
+				<<stepP_.intTime<<', [';
+
+		for (int smu = 0; smu<3; smu++){
+			myfile2<<stepSMU[smu]<<',';
+		}		
+		myfile2<<stepSMU[3]<< '], ['
+	
+		for (int smu = 0; smu<3; smu++){
+			myfile2<<stepP_.forceMode[smu]<<',';
+		}
+
+		myfile2 << stepP_.forceMode[3]<<"], [";
+		
+		for (int smu = 0; smu<3; smu++){
+			myfile2<<stepP_.measMode[smu]<<',';
+		}
+
+		myfile2 << stepP_.measMode[3]<<"]\n";
 		myfile2.close();
 		
 		return 0;
 	}
-	stepVDS_IDS::~stepVDS_IDS(){
+	stepProgram::~stepProgram(){
 		delete step_;
 	}
 
 
-	pulseVGS_IDS::pulseVGS_IDS(const pulseVGS_IDSParameters &entries){
+	pulseProgram::pulseProgram(const pulseProgramParameters &entries){
 
 		//Set all private memeber variables to inputs
 
 		pulseP_.dt  = entries.dt;
 		for (int smu=0; smu<4; smu++){
 			pulseP_.appV[smu] = entries.appV[smu];
+			pulseP_.range[smu] = entries.range[smu];
+			pulseP_.comp[smu] = entries.comp[smu];
+			pulseP_.measMode[smu] = entries.measMode[smu];
+			pulseP_.forceMde[smu] = entries.forceMode[smu];
+			pulseSMU_[smu] = entries.pulseSMU[smu];
 		}
-		pulseP_.measSMU = entries.measSMU;
+		//pulseP_.measSMU = entries.measSMU;
 
 		pulseP_.lRange = entries.lRange;
-		pulseP_.range = entries.range;
+		//pulseP_.range = entries.range;
 		pulseP_.comp = entries.comp;
-		pulseP_.intTime = entries.intTime;
-		pulseP_.measMode = 'I';
-		pulseP_.forceMode = 'V';
+		//pulseP_.intTime = entries.intTime;
+		// pulseP_.measMode = 'I';
+		// pulseP_.forceMode = 'V';
 
 		pulseP_.measTime = entries.initTime;
 
@@ -430,8 +632,17 @@ namespace KT
 		pulseOffV_ = entries.pulseOffV;
 		pulseV_ = entries.pulseV;
 		nPulses_ = entries.nPulses;
-		pulseSMU_ = entries.pulseSMU;
+		// pulseSMU_ = entries.pulseSMU;
+		//nChannels_ = entries.nChannels;
 
+		int k = 0;
+		for (int i = 0; i<4; i++){
+			if (entries.measMode[i] ! = 'N'){
+				chMeas_[k] = i+1;
+				k++;
+			}
+		}
+		nMeasChannels_ = k;
 		//Calculate size needed for each step
 
 		pulse_ = new KT::ktConst(pulseP_);
@@ -451,17 +662,24 @@ namespace KT
 		runTime_ = sizeArrayNeeded_ * pulseP_.dt*1e-3;
 	}
 
-	int pulseVGS_IDS::arraySizeNeeded(){
+	int pulseProgram::arraySizeNeeded(){
 		return sizeArrayNeeded_;
 	}
 
-	int pulseVGS_IDS::runProgram(double vFs[], double iMs[], double tMs[], int dMs[], int sizeArray)
+	int pulseProgram::runProgram(double vFs[], double iMs[], double tMs[], int dMs[], int sizeArray)
 	{
 		if (sizeArray != sizeArrayNeeded_){
 			std::cout<<"Incorrect Array size"<<std::endl;
 			return 1;
 		}
-
+		int smuInd = 0;
+		int k = 0;
+		while (smuInd == 0){
+			if (pulseSMU_[k]){
+				smuInd = k+1;
+			}
+			k++;
+		}
 		time_t tstart;
 		time_t tend;
 		time(&tstart);
@@ -469,9 +687,11 @@ namespace KT
 		std::cout<<"Program began at: " <<ctime(&tstart);
 		std::cout<<"Program will finish at: "<<ctime(&tend);
 
+
 		//Set initial measurement time
 		pulse_->setMeasTime(initTime_);
-
+		pulse_->initializeChannels();
+		pulse_->setForceParams(smuInd);
 		//Set initial indice
 		int iStart = 0;
 
@@ -518,7 +738,7 @@ namespace KT
 	}
 
 
-	int pulseVGS_IDS::saveData(std::string fn, double vFs[], double iMs[], double tMs[], int dMs[], int sizeArray)
+	int pulseProgram::saveData(std::string fn, double vFs[], double iMs[], double tMs[], int dMs[], int sizeArray)
 	{
 		//Data Directory
 		std::string direc = "C:/Users/Nanotech/Documents/KMData/Keithley/";
@@ -530,36 +750,71 @@ namespace KT
 
 		std::ofstream myfile;
 		myfile.open(fp);
-		myfile<<"vForce [V], iMeas [A], time [ms], dTime [ms]\n";
+		myfile<<"vForce [V], ";
+		for (int n = 0; n < nMeasChannels_; n++)
+		{
+			myfile<<"iMeas [A] - SMU " << chMeas_[n] << ", ";
+		} 
+		myfile << "time [ms], dTime [ms]\n";
+
 		for (int i = 0; i<sizeArray; i++)
 		{
-			myfile<<vFs[i]<<','<<iMs[i]<<','<<tMs[i]<<','<<dMs[i]<<"\n";
+			myfile<<vFs[i]<<',';
+			for (int n = 0; n < nMeasChannels_; n++){
+				myfile<<iMs[i*nMeasChannels_ + n]<<','
+			}
+			<<tMs[i]<<','<<dMs[i]<<"\n";
 		}
 		myfile.close();
 
 		std::ofstream myfile2;
 		myfile2.open(fpP);
-		myfile2<<"pulseVGS_IDS: Parameters\n";
+		myfile2<<"pulseProgram: Parameters\n";
 		myfile2<<"dt [ms], initTime [s], pulseTime [s], stepTime [s],"
-			" pulseV [V], pulseOffV [V], constV [V], nPulses, lRange, range,"
-			"comp, intTime, pulseSMU, measSMU\n";
+			" pulseV [V], pulseOffV [V], constV [V/A], nPulses, lRange, range,"
+			"comp, intTime, pulseSMU, forceMode, measMode\n";
 		myfile2<<pulseP_.dt <<','<< initTime_<<','<< pulseTime_ <<','<<stepTime_<<','
 			<<pulseV_<<','<<pulseOffV_<<', [';
-		for (int smu=0; smu<4; smu++){
-			if (smu !=pulseSMU_){
-				myfile2<<pulseP_.appV[smu]<<',';
-			}
+		for (int smu=0; smu<3; smu++){
+			myfile2<<pulseP_.appV[smu]<<',';
+			
 		}
 
-		myfile2<< "],"<<nPulses_<<','<< pulseP_.lRange<<','
-				<<pulseP_.range<<','<<pulseP_.comp<<','<<pulseP_.intTime<<','
-				<<pulseSMU_<<','<<pulseP_.measSMU<<"\n";
+		myfile2<<pulseP_.appV[3]<< "],"<<nPulses_<<','<< pulseP_.lRange<<', [';
+		for (int smu = 0; smu<3; smu++){
+				myfile2<<pulseP_.range[smu]<<',';
+		}
+		myfile2<<pulseP_.range[3]<<'], ['
+			
+		for (int smu = 0; smu<3; smu++){
+			myfile2<<pulseP_.comp[smu]<<',';
+		}
+
+		myfile2<<pulseP_.comp[3]<<"], "
+				<<pulseP_.intTime<<', ['
+
+		for (int smu = 0; smu<3; smu++){
+			myfile2<<pulseSMU[smu]<<',';
+		}		
+		myfile2<<pulseSMU[3]<< '], ['
+		
+		for (int smu = 0; smu<3; smu++){
+			myfile2<<pulseP_.forceMode[smu]<<',';
+		}
+
+		myfile2 << pulseP_.forceMode[3]<<"], [";
+			
+		for (int smu = 0; smu<3; smu++){
+			myfile2<<pulseP_.measMode[smu]<<',';
+		}
+
+		myfile2 << pulseP_.measMode[3]<<"]\n";
 		myfile2.close();
 
 		return 0;
 	}
 
-	pulseVGS_IDS::~pulseVGS_IDS(){
+	pulseProgram::~pulseProgram(){
 		delete pulse_;
 	}
 

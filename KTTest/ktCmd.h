@@ -23,13 +23,13 @@ namespace KT
 		int srcZeroAll();
 
 		// Set the compliance in the vForce command and range command
-		int setComp(const int SMU, const int comp);
+		int setComp(const int comp);
 
 		//Set the lowest possible current range
 		int setLRange(const int SMU, const int lRange);
 
 		//Set the current range
-		int setRange(const int SMU, const int range);
+		int setRange(const int range);
 
 		//Set the measurement mode
 		int setMeasMode(const char mode);
@@ -55,7 +55,7 @@ namespace KT
 		//int tMeas(double &measT);
 
 		//Measure current
-		int ivMeas(int SMU, double & measVal);
+		int ivMeas(int SMU, char mode, double &measVal);
 
 
 		//Status of communication

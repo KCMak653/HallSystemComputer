@@ -16,23 +16,29 @@ namespace KT
 {
 	ktSweep::ktSweep(const sweepParameters &entries){
 		//Set all private member variables from the inputted parameters
-		sweepSMU_ = entries.sweepSMU;
-		constSMU_ = entries.constSMU;
-		measSMU_ = entries.measSMU;
+		for (int i = 0; i<4; i++){
+			appV_[i] = entries.appV[i];
+			forceMode_[i] = entries.forceMode[i];
+			measMode_[i] = entries.measMode[i];
+			range_[i] = entries.range[i];
+			comp_[i] = entries.comp[i];
+			sweepSMU_[i] = entries.sweepSMU[i];
+		}
+
 		SR_ = entries.SR;
 		startV_ = entries.startV;
 		stopV_ = entries.stopV;
-		constV_ = entries.constV;
-		lRange_ = entries.lRange;
-		range_ = entries.range;
-		comp_ = entries.comp;
-		intTime_ = entries.intTime;
 
+		lRange_ = entries.lRange;
+
+		intTime_ = entries.intTime;
+		//nChannels_ = entries.nChannels;
+		//nSwChannels_ = entries.nSwChannels;
 		//Open handle to Keithley
 		keith_ = new KT::ktCmd();
 
 		//Set the machine parameters: Compliance, range, integration time 
-		keith_->setComp(measSMU_,comp_);
+		//keith_->setComp(measSMU_,comp_);
 		keith_->setLRange(measSMU_, lRange_);
 		//keith_.setRange(measSMU_, range_); Command not recognized?????
 		keith_->setIntTime(intTime_);
@@ -40,13 +46,13 @@ namespace KT
 		//Set the time of each measurement based on the
 		//desired integration time
 		if (intTime_ == 1){
-			dtMeas_ = 50; //ms
+			dtMeas_ = 50 * nChannels_; //ms
 		}
 		else if (intTime_ == 2) {
-			dtMeas_ = 100; //ms
+			dtMeas_ = 100 * nChannels_; //ms
 		}
 		else if (intTime_ == 3) {
-			dtMeas_ = 700; //ms
+			dtMeas_ = 700 * nChannels_; //ms
 		}
 		else 
 		{
@@ -64,6 +70,24 @@ namespace KT
 		//Ensure stepV has the correct sign
 		if (startV_ > stopV_) stepV_ = -1*stepV_;
 		
+		int k = 0;
+		for (int i = 0; i<4; i++){
+			if ((measMode_[i] == 'I') | (measMode_[i] == 'V')){
+				chMeas_[k] = i+1;
+				k++;
+			}
+		}
+		nMeasChannels_ = k;
+
+		k = 0;
+		for (int i = 0; i<4; i++){
+			if (sweepSMU_[i]){
+				chSweep_[k] = i+1;
+				k++;
+			}
+		}
+		nSwChannels_ = k;
+
 		//Force all SMUs to 0V
 		keith_->srcZeroAll();
 	}
@@ -72,16 +96,35 @@ namespace KT
 		return 0;
 	}
 
+	int ktSweep::initializeChannels()
+	{
+		for (int i = 0; i<4; i++)
+		{
+			if ((forceMode_[i] == 'I') | (forceMode_[i] == 'V'))
+			{
+				keith_->setForceMode(forceMode_[i]);
+				keith_->setRange(range_[i]);
+				keith_->setComp(comp_[i]);
+				keith_->ivForce((i+1), appV_[i]);
+			}
+		}
+	}
+
+	
+	int ktSweep::setForceParams(int SMU)
+	{
+		keith_->setForceMode(forceMode_[SMU-1]);
+		keith_->setRange(range_[SMU-1]);
+		keith_->setComp(comp_[SMU - 1]);
+	}
+
+
+
 	int ktSweep::runSweep(double vFs[], double iMs[], double tMs[], int dMs[], int sizeArray, int iStart){
 		//First ensure that the correct array size has been passed as argument
 		if (sizeArrayNeeded_ != sizeArray){
 			std::cout<<"Wrong array size"<<std::endl;
 			return 1;
-		}
-		
-		//Apply constant bias if there is one:
-		if ((constSMU_!=0) & (constSMU_ != sweepSMU_)){
-			keith_->ivForce(constSMU_,constV_);
 		}
 		
 		//Run the sweep. 
@@ -100,7 +143,9 @@ namespace KT
 		clock_t clk2 = clk;
 		
 		//Force voltage
-		keith_->ivForce(sweepSMU_,v);
+		for (int n=0; n<nSwChannels_; n++){
+			keith_->ivForce(chSweep_[n],v);
+		}
 
 		//Record voltage
 		vFs[iStart] = v;
@@ -109,7 +154,8 @@ namespace KT
 		v = v + stepV_;		
 		
 		//Measure and store current
-		keith_->ivMeas(measSMU_, iMs[iStart]);
+		for (int n=0; n<nMeasChannels_; n++){
+			keith_->ivMeas(chMeas_[n], measMode[chMeas[n]-1], iMs[n]);
 		
 		//Record the time
 		tMs[iStart] = (double)(clock());
@@ -129,11 +175,15 @@ namespace KT
 		//Repeat for length of array, since multiple sweeps may occur,
 		//the indices of where to store data in array will differe by iStart
 		for (int i=(iStart+1); i<(iStart+sizeArray); i++){
-			
-			keith_->ivForce(sweepSMU_,v);
+			for (int n=0; n<nSwChannels_; n++){
+				keith_->ivForce(chSweep_[n],v);
+			}
+
 			vFs[i] = v;
-			v = v + stepV_;		
-			keith_->ivMeas(measSMU_, iMs[i]);
+			v = v + stepV_;
+			for (int n=0; n<nMeasChannels_; n++){		
+				keith_->ivMeas(chMeas_[n], measMode[chMeas[n]-1], iMs[i*nMeasChannels_ + n]);
+			}
 			tMs[i] = (double)(clock());
 			delayT = dtMeas_*(i+1) - tMs[i];
 			if (delayT < 0) {delayT = 0;}

@@ -34,6 +34,7 @@ const int ivForceVSize = 13;
 const int ivForceArrSize = 28;
 const int ivForceCompInd = 27;
 const int ivForceModeInd = 1;
+const int ivForceRangeInd = 5;
 
 const int ivTrigArrSize = 3;
 const int ivTrigModeInd = 1;
@@ -61,8 +62,8 @@ namespace KT
 		strcpy(ivTrigCMD_, trigCMD); 
 		static char lRangeCMD[] = "RG 1, 1E-3\0";
 		strcpy(setLRangeCMD_, lRangeCMD);
-		static char rangeCMD[] = "RI 1, 1E-3, 1E-3\0";
-		strcpy(setRangeCMD_, rangeCMD);
+		//static char rangeCMD[] = "RI 1, 1E-3, 1E-3\0";
+		//strcpy(setRangeCMD_, rangeCMD);
 		static char intTimeCMD[] ="IT1\0";
 		strcpy(setIntTimeCMD_, intTimeCMD);
 
@@ -116,11 +117,11 @@ namespace KT
 		}
 	}
 
-	int ktCmd::setComp(const int SMU, const int comp)
+	int ktCmd::setComp(const int comp)
 	{
 		char j = '0' + comp;
 		ivForceCMD_[ivForceCompInd] = j;
-		setRangeCMD_[setRangeCompInd] = j;
+		//setRangeCMD_[setRangeCompInd] = j;
 		return 0;
 	}
 
@@ -140,20 +141,23 @@ namespace KT
 		return 0;
 	}
 
-	int ktCmd::setRange(const int SMU, const int range)
+	int ktCmd::setRange(const int range)
 	{
-		char j = '0' + SMU;
-		setRangeCMD_[setRangeSMUInd] = j;
-		char k = '0' + range;
-		setRangeCMD_[setRangeRangeInd] = k;
-		ibwrt(Dev_, setRangeCMD_, setRangeArrSize);
-		if (Ibsta() & ERR)
-		{
-			GPIBCleanup("Unable to set Range");
-			ktStatus = 1;
-			return ktStatus;
-		}
+		char j = '0' + range;
+		ivForceCMD_[ivForceRangeInd] = j;
 		return 0;
+		// char j = '0' + SMU;
+		// setRangeCMD_[setRangeSMUInd] = j;
+		// char k = '0' + range;
+		// setRangeCMD_[setRangeRangeInd] = k;
+		// ibwrt(Dev_, setRangeCMD_, setRangeArrSize);
+		// if (Ibsta() & ERR)
+		// {
+		// 	GPIBCleanup("Unable to set Range");
+		// 	ktStatus = 1;
+		// 	return ktStatus;
+		// }
+		// return 0;
 	}
 
 	int ktCmd::setForceMode(const char mode)
@@ -166,7 +170,7 @@ namespace KT
 	int ktCmd::setMeasMode(const char mode)
 	{
 		ivTrigCMD_[1] = mode;
-		setRangeCMD_[setRangeModeInd] = mode;
+		//setRangeCMD_[setRangeModeInd] = mode;
 		return 0;
 	}
 
@@ -183,6 +187,7 @@ namespace KT
 		updateCMD(0.0);
 		for (int i=1; i<5; i++){
 			char j = '0'+ i;
+			ivForceCMD_[1] = 'V';
 			ivForceCMD_[2] = j;
 			ibwrt(Dev_, ivForceCMD_, ivForceArrSize);
 		}
@@ -209,9 +214,10 @@ namespace KT
 	}
 
 	int ktCmd::ivForce(int SMU, double vF){
+
+		updateCMD(vF);
 		char j = '0' + SMU;
 		ivForceCMD_[ivForceSMUInd] = j;
-		updateCMD(vF);
 		ibwrt(Dev_, ivForceCMD_, ivForceArrSize);
 		//std::cout<<vForceCMD_<<std::endl;
 		//GPIBCleanup(Dev, "Unable to write to multimeter");
@@ -223,18 +229,20 @@ namespace KT
 		return 0;
 	}
 	
-	int ktCmd::ivMeas(int SMU, double & measVal){
+	int ktCmd::ivMeas(int SMU, char mode, double &measVal){
 		char j = '0' + SMU;
+		ivTrigCMD_[1] = mode;
 		ivTrigCMD_[2] = j;
 		
 		ibwrt(Dev_, ivTrigCMD_, ivTrigArrSize);
 		ibrd(Dev_, ValueStr, ARRAYSIZE);
+		sscanf(ValueStr, "%*[^-0123456789]%lf", &measVal);
 		if (Ibsta() & ERR)
 		{
 			GPIBCleanup("Unable to read data from multimeter");
 			return 1;
 		}
-		sscanf(ValueStr, "%*[^-0123456789]%lf", &measVal);
+		
 		//sscanf(ValueStr, "%*s%f", &measVal);
 		return 0;
 	}

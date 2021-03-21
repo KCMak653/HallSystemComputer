@@ -7,37 +7,39 @@
 #include<string>
 
 //Sweep parameters
-struct sweepVDS_IDSParameters
+struct sweepProgramParameters
 {
 	double startV; //Start of sweep [V]
 	double stopV; //End of sweep [V]
 	double SR; //Scan rate [V/s]
-	double constV;
+	double appV[];
 	int lRange; //Order of mag of lowest range [A]
-	int range; //Order of mag of I range [A]
-	int comp; //Compliance, max I value [A}
+	int range[4]; //Order of mag of I range [A]
+	int comp[4]; //Compliance, max I value [A}
 	int intTime; //Integration time (1,2,3)(Fast, Normal, Long)
-	int sweepSMU; //SMU to force and measure (1 -> 4)
-	int measSMU; //SMU to measure
-	int constSMU; //Applied constant bias 
+	bool sweepSMU[4]; //SMUs to sweep
+	char measMode[4]; //Measurement mode
+	char forceMode[4]; //Applied constant bias 
 	int nCycles; //Number of cycles
 	bool fullCycle; //Return to startV
 };
 
-struct constVDS_IDSParameters
+struct constProgramParameters
 {
 	double appV[4]; //Constant bias to apply [V]
 	double measTime; //Total measurement time [s]
 	double dt; //Measurement frequency [ms]
 	int lRange; //Order of mag of lowest range [A]
-	int range; //Order of mag of I range [A]
-	int comp; //Compliance, max I value [A}
+	int range[4]; //Order of mag of I range [A]
+	int comp[4]; //Compliance, max I value [A}
 	int intTime; //Integration time (1,2,3)(Fast, Normal, Long)
+	//int nChannels;
 	//int constSMU; //SMU to keep constant
-	int measSMU; //SMU to measure
+	char forceMode[4]; //MOde to force: 'V', 'I', 'N'
+	char measMode[4]; //Mode to meas: 'V', 'I', 'N'
 };
 
-struct stepVDS_IDSParameters
+struct stepProgramParameters
 {
 	double startV; //Start step voltage [V]
 	double stopV; //Max voltage to apply [V]
@@ -46,17 +48,19 @@ struct stepVDS_IDSParameters
 	double stepTime; //Step measurement time [s]
 	double dt; //Measurement frequency [ms]
 	int lRange; //Order of mag of lowest range [A]
-	int range; //Order of mag of I range [A]
-	int comp; //Compliance, max I value [A}
+	int range[4]; //Order of mag of I range [A]
+	int comp[4]; //Compliance, max I value [A}
 	int intTime; //Integration time (1,2,3)(Fast, Normal, Long)
+	//int nChannels; //Number of measurement channels
 	int nCycles; //Number of cycles
 	bool fullCycle;
 	//int constSMU; //SMU to keep constant
-	int stepSMU; //SMU to step
-	int measSMU; //SMU to measure
+	char forceMode[4]; //Mode to force
+	char measMode[4]; //Mode to meas
+	bool stepSMU; //Bool of SMUs to step
 };
 
-struct pulseVGS_IDSParameters
+struct pulseProgramParameters
 {
 	double appV[4]; //Constant bias to apply [V]
 	double pulseV; //Pulse voltage [V]
@@ -67,20 +71,22 @@ struct pulseVGS_IDSParameters
 	int nPulses; // Number of pulses
 	double dt; //Measurement frequency [ms]
 	int lRange; //Order of mag of lowest range [A]
-	int range; //Order of mag of I range [A]
-	int comp; //Compliance, max I value [A}
+	int range[4]; //Order of mag of I range [A]
+	int comp[4]; //Compliance, max I value [A}
 	int intTime; //Integration time (1,2,3)(Fast, Normal, Long)
-	int pulseSMU; //SMU to pulse
-	int measSMU; //SMU to measure
+	//int nChannels; //Number of measurement channels
+	bool pulseSMU[4]; //bool of SMUs to pulse
+	char measMode[4]; //Mode to meas
+	char forceMode[4]; //Mode tor force
 };
 
 namespace KT 
 {
-	class sweepVDS_IDS
+	class sweepProgram
 	{
 	public:
 		//Constructor creates sweep object and applies all machine settings
-		sweepVDS_IDS(const sweepVDS_IDSParameters &entries);
+		sweepProgram(const sweepProgramParameters &entries);
 
 		//Runs the program, stores results in passed arrays
 		int runProgram(double vFs[], double iMs[], double tMs[], int dMs[], int sizeArray);
@@ -91,7 +97,7 @@ namespace KT
 		//Save the data
 		int saveData(std::string fn, double vFs[], double iMs[], double tMs[], int dMs[], int sizeArray);
 
-		~sweepVDS_IDS();
+		~sweepProgram();
 	private:
 		sweepParameters sweepP_; //Parameters for sweep class
 		KT::ktSweep* swp_; //Ptr to sweep object
@@ -100,13 +106,16 @@ namespace KT
 		bool fullCycle_; //Return to startV
 		int sizeArrayNeeded; //Size of array to hold values
 		int runTime_; //Total runtime of program in seconds
+		int nMeasChannels_; //# of meas channels
+		int chMeas_[4]; //Measruement channels in order
+		bool sweepSMU_[4]; //Channels to sweep
 	};
 	
-	class constVDS_IDS
+	class constProgram
 	{
 	public:
 		//Constructor creates sweep object and applies all machine settings
-		constVDS_IDS(const constVDS_IDSParameters &entries);
+		constProgram(const constProgramParameters &entries);
 
 		//Runs the program, stores results in passed arrays
 		int runProgram(double iMs[], double tMs[], int dMs[],int sizeArray);
@@ -118,26 +127,28 @@ namespace KT
 		//Save the data
 		int saveData(std::string fn,  double iMs[], double tMs[], int dMs[],int sizeArray);
 
-		~constVDS_IDS();
+		~constProgram();
 	private:
 		constParameters constP_; //Parameters for const class
 		KT::ktConst* cnst_; //Ptr to sweep object
 		int cnstSize_; // Size of a single sweep
 		int sizeArrayNeeded; //Size of array to hold values
 		int runTime_; //Total runtime of program in seconds
+		int nMeasChannels_; //Number of meas channels
+		int chMeas_[4]; //Meas channels in order
 
 	};
 
-	class stepVDS_IDS
+	class stepProgram
 	{
 	public:
-		stepVDS_IDS(const stepVDS_IDSParameters &entries);
+		stepProgram(const stepProgramParameters &entries);
 		int runProgram(double vFs[], double iMs[], double tMs[], int dMs[], int sizeArray);
 		int arraySizeNeeded();
 		//int saveData(std::string fn, double vFs[], int sizeArray, double iMs[], double tMs[]);
 		int runFlight(double iMs[], double tMs[], int dMs[], int iStart, int nS, double v);
 		int saveData(std::string fn, double vFs[], double iMs[], double tMs[], int dMs[], int sizeArray);
-		~stepVDS_IDS();
+		~stepProgram();
 	private:
 		constParameters stepP_;
 		KT::ktConst* step_;
@@ -149,7 +160,11 @@ namespace KT
 		double stopV_;
 		double startV_;
 		double stepV_;
-		int stepSMU_;
+		bool stepSMU_[4];
+		int nMeasChannels_;
+		int chMeas_[4];
+		// int chStep_[4];
+		// int nChStep_;
 		//double appV_[4];
 		//double constSMU_;
 		int sizeArrayNeeded_;
@@ -159,17 +174,17 @@ namespace KT
 
 	};
 
-	class pulseVGS_IDS
+	class pulseProgram
 	{
 	public:
-		pulseVGS_IDS(const pulseVGS_IDSParameters &entries);
+		pulseProgram(const pulseProgramParameters &entries);
 		int runProgram(double vFs[], double iMs[], double tMs[], int dMs[], int sizeArray);
 		int arraySizeNeeded();
 		//int saveData(std::string fn, double vFs[], int sizeArray, double iMs[], double tMs[]);
 		
 		int runPulse(double iMs[], double tMs[], int dMs[], int iStart, int nS, double v);
 		int saveData(std::string fn, double vFs[], double iMs[], double tMs[], int dMs[], int sizeArray);
-		~pulseVGS_IDS();
+		~pulseProgram();
 	private:
 		constParameters pulseP_;
 		KT::ktConst* pulse_;
@@ -182,7 +197,9 @@ namespace KT
 		double initTime_;
 		double pulseTime_;
 		double stepTime_;
-		int pulseSMU_;
+		bool pulseSMU_[4];
+		int nMeasChannels_;
+		int chMeas_[4];
 		//double constSMU_;
 		int sizeArrayNeeded_;
 		//void reverseV();

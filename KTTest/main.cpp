@@ -39,41 +39,23 @@
 #include<sstream>
 #include <thread>
 #include<vector>
-//struct sweepParameters
-//{
-	//double startV, stopV, SR;
-//};
-void print(int n, const std::string& str) {
-	for (int i = 0; i < 5; i++) {
-		std::cout << "Printing integer: " << i << std::endl;
-		std::cout << "Printing string: " << str << std::endl;
-		Sleep(1000);
-	}
-}
+
+void constTest();
+void sweepTest();
+void stepTest();
+void pulseTest();
+void threadTest();
+void rcTest();
+void multiDevTC();
+void mcTest();
+
 
 int __cdecl main(void)
 {
-	//std::vector<std::string> s = {
-	//	"edu",
-	//	"Edu",
-	//	"courx",
-	//	"are grat"
-	//};
-	//std::vector<std::thread> threads;
-
-	//for (int i = 0; i < s.size(); i++) {
-	//	threads.push_back(std::thread(print, i, s[i]));
-	//}
-
-	//for (auto& th : threads) {
-	//	th.join();
-	//}
-
-	//
-	//char c;
-	//MC::mcConst md(7);
-	//md.movePosition(10);
-
+   return 0;
+}
+void threadTest(){
+	/*
 	constVDS_IDSParameters constP;
 
 
@@ -126,21 +108,16 @@ int __cdecl main(void)
 	delete iMs;
 	delete tMs;
 	delete dMs;
+	*/
+}
+void mcTest(){
 	/*
-
-
-
+		//std::cin>>c;
 	
-
-
-	
-	//std::cin>>c;
-	
-	/*
 	char c = 'm';
 	MC::mcCmd md;
 	//md.setRefPt();
-	/*
+	
 	int conv = 370;
 	double numML = 1;
 	double mLposO = 5;
@@ -181,26 +158,9 @@ int __cdecl main(void)
 	//md.move();
 
 	//md.moveRefPt(100);
-	
-	/*
-	int val = 1000;
-	std::string strVal = std::to_string((long long)val);
-	std::string strB = "NW";
-	std::string strcC = "\r";
-	std::string fullV = strB + strVal + strcC;
-	const int len = fullV.length();
-	
-	char char_array[len+1];
-	//strcpy(char_array, fullV.c_str());
-	std::cout<<len<<std::endl;
 	*/
-	//getch();
-	/*
-	
-	RC::rcCmd rc;
-	rc.chOff(1);
-
-
+}
+void multiDevTC(){
 	/*
 	std::ostringstream oss;
 	std::string fname;
@@ -256,7 +216,7 @@ int __cdecl main(void)
 
 			rc.chOff(1);
 			rc.chOn(4);
-			/*
+			
 				for (int i = 0; i<arraySize; i++){
 					std::cout<<"F: :"<<vFs[i]<<std::endl;
 					std::cout<<"i: "<<iMs[i]<<std::endl;
@@ -284,136 +244,11 @@ int __cdecl main(void)
 	delete iMs;
 	delete tMs;
 	delete dMs;
-   /*
-	KT::ktCmd test1;
-	//KT.initialize();
-	//test1.srcZeroAll();
-	//test1.vForce(2, .1);
-	//double mV =0.98;
-	//test1.iMeas(2, mV);
-	//std::cout<<mV<<std::endl;
-	//test1.srcZeroAll();
-	//KT.GPIBCleanup(17, "Hello");
-	time_t t;
-	time_t endt;
-	time(&t);
-	endt = t +100;
-	std::cout<<"Current time: " << ctime(&t) << std::endl;
-	std::cout<<"End time: " << ctime(&endt) <<std::endl;
-	*/
-	//RC::rcCmd rc3;
+*/
+}
+
+void pulseTest(){
 	/*
-	
-	constVDS_IDSParameters constP;
-	
-	
-	constP.measTime = 10;
-	constP.dt = 1000;
-	constP.lRange = 6;
-	constP.range = 6;
-	constP.comp = 4;
-	constP.intTime = 1;
-	constP.measSMU =3;
-	constP.appV[0] =0;
-	constP.appV[1] = 0;
-	constP.appV[2] = .2;
-	constP.appV[3] = 0;
-	//constP.constSMU =2;
-	
-	KT::constVDS_IDS swp(constP);
-
-	int arraySize = swp.arraySizeNeeded();
-	
-	std::cout<<"Array size is: "<<arraySize<<std::endl;
-	
-	
-	//rc3.chAllOn();
-	//double * vFs = new double[arraySize];
-	double * iMs = new double[arraySize];
-	double * tMs = new double[arraySize];
-	int * dMs = new int[arraySize];
-	swp.runProgram(iMs, tMs, dMs, arraySize);
-	for (int i = 0; i<arraySize; i++){
-		//std::cout<<"F: :"<<vFs[i]<<std::endl;
-		std::cout<<"i: "<<iMs[i]<<std::endl;
-		std::cout<<"t: "<< tMs[i]<<std::endl;
-		std::cout<<"d: "<<dMs[i]<<std::endl;
-	}
-
-	
-	std::string fn = "vdsidsConst_test2";
-	//std::string fn2 = "Param_";
-	swp.saveData(fn, iMs, tMs, dMs, arraySize);
-	//delete vFs;
-	delete iMs;
-	delete tMs;
-	delete dMs;
-	/*
-	
-	sweepVDS_IDSParameters sweepP;
-	sweepP.sweepSMU = 3;
-	sweepP.constSMU = 2;
-	sweepP.measSMU = 3;
-	sweepP.startV = -1;
-	sweepP.stopV = 1;
-	sweepP.SR = 0.5;
-	sweepP.constV = .00;
-	sweepP.lRange = 3;
-	sweepP.range =3;
-	sweepP.comp = 3;
-	sweepP.intTime = 1;
-	sweepP.nCycles = 1;
-	sweepP.fullCycle = TRUE;
-
-	KT::sweepVDS_IDS swp(sweepP);
-	
-	
-	int arraySize = swp.arraySizeNeeded();
-	std::cout<<"Array size is: "<<arraySize<<std::endl;
-	rc3.chOn(1);
-	//rc3.chAllOn();
-	double * vFs = new double[arraySize];
-	double * iMs = new double[arraySize];
-	double * tMs = new double[arraySize];
-	int * dMs = new int[arraySize];
-	swp.runProgram(vFs, iMs, tMs, dMs, arraySize);
-	for (int i = 0; i<arraySize; i++){
-		std::cout<<"F: :"<<vFs[i]<<std::endl;
-		std::cout<<"i: "<<iMs[i]<<std::endl;
-		std::cout<<"t: "<< tMs[i]<<std::endl;
-		std::cout<<"d: "<<dMs[i]<<std::endl;
-	}
-
-	
-	std::string fn = "restest";
-	//std::string fn2 = "Param_";
-	swp.saveData(fn, vFs, iMs, tMs, dMs, arraySize);
-	delete vFs;
-	delete iMs;
-	delete tMs;
-	delete dMs;
-	rc3.chAllOff();
-
-
-	/*
-	int slptime = 15;
-	double slptime2 = 25;
-	clock_t this_time = clock();
-	clock_t last_time = clock();
-	clock_t set_time = clock();
-	
-	Sleep(slptime);
-	this_time=clock();
-	
-	Sleep(slptime2);
-	last_time = clock();
-	double time_count = (double)(last_time - this_time);
-	std::cout<<time_count<<std::endl;
-	std::cout<<last_time<<std::endl;
-	std::cout<<this_time<<std::endl;
-	std::cout<<set_time<<std::endl;
-	*/
-/*
 	pulseVGS_IDSParameters pulseP;
 	pulseP.appV[0]=0;
 	pulseP.appV[1] = 2;
@@ -465,8 +300,69 @@ int __cdecl main(void)
 	delete iMs;
 	delete tMs;
 	delete dMs;
+*/
+}
+void constTest(){
+	/*
+	constVDS_IDSParameters constP;
+	
+	
+	constP.measTime = 10;
+	constP.dt = 1000;
+	constP.lRange = 6;
+	constP.range = 6;
+	constP.comp = 4;
+	constP.intTime = 1;
+	constP.measSMU =3;
+	constP.appV[0] =0;
+	constP.appV[1] = 0;
+	constP.appV[2] = .2;
+	constP.appV[3] = 0;
+	//constP.constSMU =2;
+	
+	KT::constVDS_IDS swp(constP);
 
-	getch();
+	int arraySize = swp.arraySizeNeeded();
+	
+	std::cout<<"Array size is: "<<arraySize<<std::endl;
+	
+	
+	//rc3.chAllOn();
+	//double * vFs = new double[arraySize];
+	double * iMs = new double[arraySize];
+	double * tMs = new double[arraySize];
+	int * dMs = new int[arraySize];
+	swp.runProgram(iMs, tMs, dMs, arraySize);
+	for (int i = 0; i<arraySize; i++){
+		//std::cout<<"F: :"<<vFs[i]<<std::endl;
+		std::cout<<"i: "<<iMs[i]<<std::endl;
+		std::cout<<"t: "<< tMs[i]<<std::endl;
+		std::cout<<"d: "<<dMs[i]<<std::endl;
+	}
+
+	
+	std::string fn = "vdsidsConst_test2";
+	//std::string fn2 = "Param_";
+	swp.saveData(fn, iMs, tMs, dMs, arraySize);
+	//delete vFs;
+	delete iMs;
+	delete tMs;
+	delete dMs;
+	*/
+}
+
+void rcTest(){
+	/*
+	RC::rcCmd rc3;
+	rc3.chOn(3);
+	rc3.chOn(7);
+	rc3.chOn(4);
+	rc3.chOn(6);
+	rc3.chOff(2);
+	rc3.chAllOff();
+	*/
+}
+void stepTest(){
 	/*
 	stepVDS_IDSParameters sweepP;
 	sweepP.startV = 1;
@@ -489,8 +385,6 @@ int __cdecl main(void)
 	sweepP.intTime = 1;
 	sweepP.nCycles = 1;
 	sweepP.fullCycle = 0;
-
-
 	KT::stepVDS_IDS swp(sweepP);
 	
 	
@@ -510,9 +404,9 @@ int __cdecl main(void)
 		std::cout<<"t: "<< tMs[i]<<std::endl;
 		std::cout<<"d: "<<dMs[i]<<std::endl;
 	}
-	*/
+	
 	//std::cout<<arraySize<<std::endl;
-	/*
+	
 	std::string fn = "LStV_G6_5_PBS_long_test";
 	//std::string fn2 = "Param_";
 	
@@ -522,24 +416,10 @@ int __cdecl main(void)
 	delete iMs;
 	delete tMs;
 	delete dMs;
-	
-	
-	//RC::rcCmd rc3;
-	//rc3.chOn(3);
-	//rc3.chOn(7);
-	/*rc3.chOn(4);
-	rc3.chOn(6);
-	rc3.chOff(2);
-	rc3.chAllOff();
 	*/
-	/*
-	char sentence[] = "NBI-0.456E6";
-	double val;
-	//sscanf(sentence, "%*[^0-9]%d", &val);
-	sscanf(sentence, "%*[^-0123456789]%lf", &val);
-	std::cout<<val<<std::endl;
-	*/
-	/*
+}
+void sweepTest(){
+/*
 	sweepVDS_IDSParameters sweepP;
 	sweepP.sweepSMU = 2;
 	sweepP.constSMU = 1;
@@ -582,90 +462,5 @@ int __cdecl main(void)
 	delete iMs;
 	delete tMs;
 	delete dMs;
-	rc3.chAllOff();
-	//rc3.chOff(3);
-	//std::cout<<fn+fn2;
-	/*
-	std::cout<<"hey"<<std::endl;
-	Sleep(5000);
-	std::cout<<"you"<<std::endl;
-	 */
-	/*
-
-	//KT::ktCmd chk;
-	//char cmd[] = "UL\0";
-	//int len = strlen(cmd);
-	//chk.sendPersCmd(cmd, len);
-	//char cmd3[] = "GD NWFET_KM SourceZeroAll";
-	//chk.sendPersCmd(cmd3);
-
-   /*
-    * ========================================================================
-    *
-    * MAIN BODY SECTION
-    *
-    * In this application, the Main Body communicates with the instrument
-    * by writing a command to it and reading its response. This would be
-    * the right place to put other instrument communication.
-    *
-    * ========================================================================
-    */
-
-   /*
-    * The application writes the '*IDN?' command to the multimeter.
-    
-   ibwrt(Dev, "US", 2);
-   
-
-
-   ibwrt(Dev, cmd, length);
-   ibwrt(Dev, "TI3", 3);
-   
-   /*
-   
-   ibwrt(Dev, "DV3, 0, 2.000000E-1, 1.000000E-2\n", 6L);
-   if (Ibsta() & ERR)
-   {
-      GPIBCleanup(Dev, "Unable to write to multimeter");
-      return 1;
-   }
-   */
-   /*
-    * The application reads the ASCII string from the multimeter into
-    * the variable ValueStr.
-    
-   
-   ibrd(Dev, ValueStr, ARRAYSIZE);
-   if (Ibsta() & ERR)
-   {
-      GPIBCleanup(Dev, "Unable to read data from multimeter");
-      return 1;
-   }
-   
-   /*
-    * Assume that the returned string contains ASCII data. NULL
-    * terminate the string using the value in ibcntl which is the
-    * number of bytes read in. Use printf to display the string.
-    
-   ValueStr[Ibcnt() - 1] = '\0';
-
-   printf("Data read: %s\n", ValueStr);
-
-   /*
-    * ========================================================================
-    *
-    * CLEANUP SECTION
-    *
-    * ========================================================================
-    */
-
-   /*
-    * The device is taken offline.
-    
-   ibonl(Dev, 0);
-   */
-   return 0;
+	*/
 }
-
-
-
