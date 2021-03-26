@@ -12,7 +12,7 @@ struct sweepProgramParameters
 	double startV; //Start of sweep [V]
 	double stopV; //End of sweep [V]
 	double SR; //Scan rate [V/s]
-	double appV[];
+	double appV[4];
 	int lRange; //Order of mag of lowest range [A]
 	int range[4]; //Order of mag of I range [A]
 	int comp[4]; //Compliance, max I value [A}
@@ -57,7 +57,7 @@ struct stepProgramParameters
 	//int constSMU; //SMU to keep constant
 	char forceMode[4]; //Mode to force
 	char measMode[4]; //Mode to meas
-	bool stepSMU; //Bool of SMUs to step
+	bool stepSMU[4]; //Bool of SMUs to step
 };
 
 struct pulseProgramParameters

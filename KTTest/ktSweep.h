@@ -67,6 +67,7 @@ namespace KT
 		bool sweepSMU_[4]; //SMU to sweep (1 -> 4)
 		char measMode_[4]; //Measurement mode 'I', 'V'
 		char forceMode_[4]; //Force mode 'I', 'V'
+		int chMeas_[4];
 		int chSweep_[4]; //Chnls to sweep in order
 		int nSwChannels_; //# of sweep channels
 		

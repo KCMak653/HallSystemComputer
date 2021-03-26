@@ -37,21 +37,32 @@ namespace KT
 		//keith_->setForceMode(forceMode_);
 		//keith_->setMeasMode(measMode_);
 		//keith_->setComp(measSMU_,comp_);
-		keith_->setLRange(measSMU_, lRange_);
+
+		
 		//keith_.setRange(measSMU_, range_); Command not recognized?????
 		keith_->setIntTime(intTime_);
 
+		int k = 0;
+		for (int i = 0; i < 4; i++) {
+			if ((measMode_[i] == 'I') | (measMode_[i] == 'V')) {
+				chMeas_[k] = i + 1;
+				keith_->setLRange(chMeas_[k], lRange_);
+				k++;
+			}
+		}
+		nMeasChannels_ = k;
 
 		//Set the minimum time of each measurement based on the
 		//desired integration time
+		std::cout << "NC" << nMeasChannels_ << std::endl;
 		if (intTime_ == 1){
-			dtMin_ = 50 * nChannels_; //ms
+			dtMin_ = 50 * nMeasChannels_; //ms
 		}
 		else if (intTime_ == 2) {
-			dtMin_ = 100 * nChannels_; //ms
+			dtMin_ = 100 * nMeasChannels_; //ms
 		}
 		else if (intTime_ == 3) {
-			dtMin_ = 700 * nChannels_; //ms
+			dtMin_ = 700 * nMeasChannels_; //ms
 		}
 		else 
 		{
@@ -69,14 +80,7 @@ namespace KT
 		sizeArrayNeeded_ = measTime_*1e3/dt_+1.5;
 	
 		//Initialize chMeas array which keeps channels to measure in order - don't have to keep checking all of measMode
-		int k = 0;
-		for (int i = 0; i<4; i++){
-			if ((measMode_[i] == 'I') | (measMode_[i] == 'V')){
-				chMeas_[k] = i+1;
-				k++;
-			}
-		}
-		nMeasChannels_=k;
+
 
 		//Force all SMUs to 0V
 		keith_->srcZeroAll();
@@ -101,6 +105,7 @@ namespace KT
 				keith_->ivForce((i+1), appV_[i]);
 			}
 		}
+		return 0;
 	}
 
 
@@ -109,6 +114,7 @@ namespace KT
 		keith_->setForceMode(forceMode_[SMU-1]);
 		keith_->setRange(range_[SMU-1]);
 		keith_->setComp(comp_[SMU - 1]);
+		return 0;
 	}
 
 
@@ -143,7 +149,7 @@ namespace KT
 
 		//Measure and store current
 		for (int n=0; n<nMeasChannels_; n++){
-			keith_->ivMeas(chMeas_[n], measMode[chMeas[n]-1], iMs[n]);
+			keith_->ivMeas(chMeas_[n], measMode_[chMeas_[n]-1], iMs[n+iStart]);
 		}
 		
 		//Record the time
@@ -165,8 +171,8 @@ namespace KT
 		//the indices of where to store data in array will differe by iStart
 		for (int i=(iStart+1); i<(iStart+sizeArray); i++){
 			//vFs[i] = v;
-			for (int n = 0; n<nChannels; n++){
-				keith_->ivMeas(chMeas_[n], measMode[chMeas[n]-1], iMs[i*nMeasChannels_ + n]);
+			for (int n = 0; n<nMeasChannels_; n++){
+				keith_->ivMeas(chMeas_[n], measMode_[chMeas_[n]-1], iMs[i*nMeasChannels_ + n]);
 			}
 			tMs[i] = (double)(clock());
 			delayT = dt_*(i+1) - tMs[i];
@@ -186,8 +192,8 @@ namespace KT
 	int ktConst::setIV(bool SMU[], double v)
 	{
 		for (int i =0; i<4; i++){
-			if (SMU[i])){
-				keith_-> iVForce((i+1), v);
+			if (SMU[i]){
+				keith_-> ivForce((i+1), v);
 			}
 		}
 		return 0;

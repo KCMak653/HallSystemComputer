@@ -49,7 +49,7 @@ namespace KT
 		
 		int k = 0;
 		for (int i = 0; i<4; i++){
-			if (entries.measMode[i] ! = 'N'){
+			if ((entries.measMode[i] == 'I')|(entries.measMode[i] == 'V')){
 				chMeas_[k] = i+1;
 				k++;
 			}
@@ -150,9 +150,9 @@ namespace KT
 		{
 			myfile<<vFs[i]<<',';
 			for (int n = 0; n < nMeasChannels_; n++){
-				myfile<<iMs[i*nMeasChannels_ + n]<<','
+				myfile << iMs[i * nMeasChannels_ + n] << ',';
 			}
-			<<tMs[i]<<','<<dMs[i]<<"\n";
+			myfile<<tMs[i]<<','<<dMs[i]<<"\n";
 		}
 
 		myfile.close();
@@ -162,30 +162,30 @@ namespace KT
 		myfile2.open(fpP);
 		myfile2<<"sweepProgram: Parameters\n";
 		myfile2<<"startV [V], stopV [V], SR [V/s], constV [V/A], lRange, range, comp, intTime, sweepSMU, forceMode, measMode, nCycles, fullCycle\n";
-		myfile2<<sweepP_.startV<<","<<sweepP_.stopV<<','<<sweepP_.SR<<', [';
+		myfile2<<sweepP_.startV<<","<<sweepP_.stopV<<','<<sweepP_.SR<<", [";
 		
 		for (int smu=0; smu<4; smu++){
 			myfile2<<sweepP_.appV[smu]<<',';
 		}
-		myfile2<<sweepP_.appV[3]<<'] ,'
-				<<sweepP_.lRange<<',[';
+		myfile2<<sweepP_.appV[3]<<"] ,"
+				<<sweepP_.lRange<<",[";
 					
 		for (int smu = 0; smu<3; smu++){
 				myfile2<<sweepP_.range[smu]<<',';
 		}
-		myfile2<<sweepP_.range[3]<<'], ['
+		myfile2 << sweepP_.range[3] << "], [";
 			
 		for (int smu = 0; smu<3; smu++){
 			myfile2<<sweepP_.comp[smu]<<',';
 		}
 
-		myfile2<<sweepP_.comp[3]<<"], "
-				<<sweepP_.intTime<<', ['
+		myfile2 << sweepP_.comp[3] << "], "
+			<< sweepP_.intTime << ", [";
 		
 		for (int smu = 0; smu<3; smu++){
 			myfile2<<sweepSMU_[smu]<<',';
 		}		
-		myfile2<<sweepSMU_[3]<< '], ['
+		myfile2 << sweepSMU_[3] << "], [";
 		
 		
 		for (int smu = 0; smu<3; smu++){
@@ -242,7 +242,7 @@ namespace KT
 
 		int k = 0;
 		for (int i = 0; i<4; i++){
-			if ((measMode_[i] == 'I')|(measMode_[i] == 'V')){
+			if ((constP_.measMode[i] == 'I')|(constP_.measMode[i] == 'V')){
 				chMeas_[k] = i+1;
 				k++;
 			}
@@ -293,7 +293,7 @@ namespace KT
 		for (int i = 0; i<sizeArray; i++)
 		{
 			for (int n = 0; n < nMeasChannels_; n++){
-				myfile<<iMs[i*nMeasChannels_ + n]<<','
+				myfile << iMs[i * nMeasChannels_ + n] << ',';
 			}	
 			myfile<<tMs[i]<<','<<dMs[i]<<"\n";
 		}
@@ -302,31 +302,31 @@ namespace KT
 		//std::string fnP = "P_" + fn;
 		std::ofstream myfile2;
 		myfile2.open(fpP);
-		myfiel2<<"constProgram: Parameters]\n";
+		myfile2<<"constProgram: Parameters\n";
 		myfile2<<"dt [ms], measTime [s], constV [V/A], lRange, range, comp, intTime,"
 				" forceMode, measMode\n";
-		myfile2<<constP_.dt<<","<<constP_.measTime<<', [';
+		myfile2<<constP_.dt<<","<<constP_.measTime<<", [";
 		for (int smu = 0; smu<3; smu++){
 			myfile2<<constP_.appV[smu]<<',';
 		}
-		myfile2<<constP_.appV[3]<< '],'<<constP_.lRange<<', [';
+		myfile2<<constP_.appV[3]<< "],"<<constP_.lRange<<", [";
 		
 		for (int smu = 0; smu<3; smu++){
 			myfile2<<constP_.range[smu]<<',';
 		}
-		myfile2<<constP_.range[3]<<'], ['
+		myfile2 << constP_.range[3] << "], [";
 		
 		for (int smu = 0; smu<3; smu++){
 			myfile2<<constP_.comp[smu]<<',';
 		}
 
-		myfile2<<constP_.comp[3]<<'], '
-				<<constP_.intTime<<', ['
+		myfile2 << constP_.comp[3] << "], "
+			<< constP_.intTime << ", [";
 
 		for (int smu = 0; smu<3; smu++){
 			myfile2<<constP_.forceMode[smu]<<',';
 		}		
-		myfile2<<constP_.forceMode[3]<< '], ['
+		myfile2 << constP_.forceMode[3] << "], [";
 		
 		for (int smu = 0; smu<3; smu++){
 			myfile2<<constP_.measMode[smu]<<',';
@@ -379,7 +379,7 @@ namespace KT
 		//constSMU_ = entries.constSMU;
 		int k = 0;
 		for (int i = 0; i<4; i++){
-			if ((measMode_[i] == 'I')|(measMode_[i] == 'V')){
+			if ((stepP_.measMode[i] == 'I')|(stepP_.measMode[i] == 'V')){
 				chMeas_[k] = i+1;
 				k++;
 			}
@@ -390,7 +390,7 @@ namespace KT
 		//Get ordered force channels
 		step_ = new KT::ktConst(stepP_);
 
-		stepSize_ = step_->arraySizeNeeded();
+		stepSize_ = step_->arraySizeNeeded() - 1;
 		std::cout<<"stepSize: "<<stepSize_<<std::endl;
 		//Calculate number of steps for single climb and total number of steps
 		std::cout<<"fC: "<<int(fullCycle_)<<std::endl;
@@ -402,7 +402,7 @@ namespace KT
 		if (startV_>stopV_) stepV_ = -fabs(stepV_);
 		std::cout<<"nStep: "<<nSteps_<<std::endl;
 		std::cout<<"nSteptot: "<<nStepsTot_<<std::endl;
-		sizeArrayNeeded_ = nStepsTot_*(stepSize_-1) + 1;
+		sizeArrayNeeded_ = nStepsTot_*(stepSize_) + 1;
 		
 	}
 
@@ -434,8 +434,8 @@ namespace KT
 		std::cout<<"Program began at: " <<ctime(&tstart);
 		std::cout<<"Program will finish at: " <<ctime(&tend);
 		//Set initial indice
-		stepP_ -> initializeChannels();
-		stepP_-> setForceParams(smuInd);
+		step_ -> initializeChannels();
+		step_-> setForceParams(smuInd);
 		int iStart = 0;
 		int nS = nSteps_;
 		double iV = startV_;
@@ -470,29 +470,33 @@ namespace KT
 		}
 
 		//Fill in vFs[], since ktConst does not do this
+		std::cout << "nS" << nS << std::endl;
 		iStart = 0;
 		iV = startV_;
+		int jEnd = nS + 1;
 		for (int i = 0; i<nCycles_; i++){ 
-			for (int j = 0; j<nS; j++){
-				for (int k=iStart; k<(iStart+stepSize_); k++){
+			for (int j = 0; j<jEnd; j++){
+				std::cout << 'j' << j << std::endl;
+				for (int k=iStart; k<(iStart+stepSize_+1); k++){
 					vFs[k] = iV;
 				}
 				iV = iV + stepV_;
-				iStart = iStart + stepSize_ - 1;
+				iStart = iStart + stepSize_ ;
 			}
 			if (fullCycle_) {
 				reverseV();
 				iV = startV_ + stepV_;
 				for (int j = 0; j<nS; j++){
-					for (int k=iStart; k<(iStart+stepSize_); k++){
+					for (int k=iStart; k<(iStart+stepSize_+1); k++){
 						vFs[k] = iV;
 					}
 				iV = iV + stepV_;
-				iStart = iStart + stepSize_ - 1;
+				iStart = iStart + stepSize_ ;
 				}
 				reverseV();
 			}
 			iV = startV_ + stepV_*(int(fullCycle_));
+			jEnd = nS;
 		}
 		return 0;
 	}
@@ -502,10 +506,12 @@ namespace KT
 		step_->setIV(stepSMU_, v);
 		for (int i=0; i<nS; i++){
 			std::cout<<iStart<<std::endl;
-			step_->runTest(iMs, tMs, dMs, stepSize_, iStart);
+			step_->runTest(iMs, tMs, dMs, (stepSize_+1), iStart);
 			v = v + stepV_;
-			step_->setIV(stepSMU_, v);
-			iStart = iStart + stepSize_- 1;
+			if (i != (nS - 1)) {
+				step_->setIV(stepSMU_, v);
+			}
+			iStart = iStart + stepSize_ ;
 		}
 		return iStart;
 	}
@@ -543,9 +549,9 @@ namespace KT
 		{
 			myfile<<vFs[i]<<',';
 			for (int n = 0; n < nMeasChannels_; n++){
-				myfile<<iMs[i*nMeasChannels_ + n]<<','
+				myfile << iMs[i * nMeasChannels_ + n] << ',';
 			}
-			<<tMs[i]<<','<<dMs[i]<<"\n";
+			myfile<<tMs[i]<<','<<dMs[i]<<"\n";
 		}
 		myfile.close();
 
@@ -556,7 +562,7 @@ namespace KT
 		myfile2<<"dt [ms], stepTime [s], startV [V], stopV [V], stepV [V], "
 			"constV [V], nCycles, fullCycle, lRange, range, comp, "
 			"intTime, stepSMU, forceMode, measMode\n";
-		myfile2<<stepP_.dt<<","<<stepP_.measTime<<','<<startV_<<','<<stopV_<<','<<stepV_<<', [';
+		myfile2<<stepP_.dt<<","<<stepP_.measTime<<','<<startV_<<','<<stopV_<<','<<stepV_<<", [";
 		
 		for (int smu = 0; smu<3; smu++){
 			myfile2<<stepP_.appV[smu]<<',';
@@ -567,19 +573,19 @@ namespace KT
 		for (int smu = 0; smu<3; smu++){
 			myfile2<<stepP_.range[smu]<<',';
 		}
-		myfile2<<stepP_.range[3]<<'], ['
+		myfile2 << stepP_.range[3] << "], [";
 		
 		for (int smu = 0; smu<3; smu++){
 			myfile2<<stepP_.comp[smu]<<',';
 		}
 
 		myfile2<<stepP_.comp[3]<<"], "
-				<<stepP_.intTime<<', [';
+				<<stepP_.intTime<<", [";
 
 		for (int smu = 0; smu<3; smu++){
-			myfile2<<stepSMU[smu]<<',';
+			myfile2<<stepSMU_[smu]<<',';
 		}		
-		myfile2<<stepSMU[3]<< '], ['
+		myfile2 << stepSMU_[3] << "], [";
 	
 		for (int smu = 0; smu<3; smu++){
 			myfile2<<stepP_.forceMode[smu]<<',';
@@ -611,15 +617,15 @@ namespace KT
 			pulseP_.range[smu] = entries.range[smu];
 			pulseP_.comp[smu] = entries.comp[smu];
 			pulseP_.measMode[smu] = entries.measMode[smu];
-			pulseP_.forceMde[smu] = entries.forceMode[smu];
+			pulseP_.forceMode[smu] = entries.forceMode[smu];
 			pulseSMU_[smu] = entries.pulseSMU[smu];
 		}
 		//pulseP_.measSMU = entries.measSMU;
 
 		pulseP_.lRange = entries.lRange;
 		//pulseP_.range = entries.range;
-		pulseP_.comp = entries.comp;
-		//pulseP_.intTime = entries.intTime;
+		//pulseP_.comp = entries.comp;
+		pulseP_.intTime = entries.intTime;
 		// pulseP_.measMode = 'I';
 		// pulseP_.forceMode = 'V';
 
@@ -637,7 +643,7 @@ namespace KT
 
 		int k = 0;
 		for (int i = 0; i<4; i++){
-			if (entries.measMode[i] ! = 'N'){
+			if ((entries.measMode[i] == 'I')|(entries.measMode[i]== 'V')){
 				chMeas_[k] = i+1;
 				k++;
 			}
@@ -647,18 +653,18 @@ namespace KT
 
 		pulse_ = new KT::ktConst(pulseP_);
 
-		initSize_ = pulse_->arraySizeNeeded();
+		initSize_ = pulse_->arraySizeNeeded() - 1;
 		std::cout<<"init size: " << initSize_<<std::endl;
 		pulse_->setMeasTime(stepTime_);
-		stepSize_ = pulse_->arraySizeNeeded();
+		stepSize_ = pulse_->arraySizeNeeded() - 1;
 		std::cout<<"step size: " << stepSize_<<std::endl;
 		pulse_->setMeasTime(pulseTime_);
-		pulseSize_ = pulse_->arraySizeNeeded();
+		pulseSize_ = pulse_->arraySizeNeeded() - 1;
 		std::cout<<"pulse size: " << pulseSize_<<std::endl;
 		if (pulseSize_ < 2){ 
 			std::cout<<"Need longer pulse"<<std::endl;
 		}
-		sizeArrayNeeded_ = initSize_  + (stepSize_ + pulseSize_ - 2)*nPulses_ + nPulses_  -1;
+		sizeArrayNeeded_ = initSize_  + (stepSize_ + pulseSize_ )*nPulses_ ;
 		runTime_ = sizeArrayNeeded_ * pulseP_.dt*1e-3;
 	}
 
@@ -695,19 +701,20 @@ namespace KT
 		//Set initial indice
 		int iStart = 0;
 
-		pulse_->runTest(iMs, tMs, dMs, initSize_, iStart);
-		iStart = iStart + initSize_ -1;
+		pulse_->runTest(iMs, tMs, dMs, (initSize_+1), iStart);
+		iStart = iStart + initSize_ - 1;
 
 		for (int i = 0; i<nPulses_; i++){
+
 			pulse_->setMeasTime(pulseTime_);
 			pulse_->setIV(pulseSMU_, pulseV_);
-			pulse_->runTest(iMs, tMs, dMs, pulseSize_, iStart);
+			pulse_->runTest(iMs, tMs, dMs, (pulseSize_+1), iStart);
 			pulse_->setIV(pulseSMU_, pulseOffV_);
-			iStart = iStart + pulseSize_-1;
+			iStart = iStart + pulseSize_ ;
 			pulse_->setMeasTime(stepTime_);
-			pulse_->runTest(iMs, tMs, dMs, stepSize_, iStart);
+			pulse_->runTest(iMs, tMs, dMs, (stepSize_+1), iStart);
 			//std::cout<<"pre: "<<iStart<<std::endl;
-			iStart = iStart + stepSize_;
+			iStart = iStart + stepSize_ ;
 			//std::cout<<iStart<<std::endl;
 		}
 		//Fill in vFs
@@ -718,14 +725,14 @@ namespace KT
 		for (int k = 0; k<initSize_; k++){
 			vFs[k] = pulseOffV_;
 		}
-		iStart = iStart + initSize_ - 1;
+		iStart = iStart + initSize_ ;
 
 		for (int i = 0; i<nPulses_; i++){
 			for (int k = iStart; k<(iStart+pulseSize_); k++)
 			{
 				vFs[k] = pulseV_;
 			}
-			iStart = iStart + pulseSize_ - 1;
+			iStart = iStart + pulseSize_ ;
 			for (int k = iStart; k<(iStart+stepSize_); k++)
 			{
 				vFs[k] = pulseOffV_;
@@ -761,9 +768,9 @@ namespace KT
 		{
 			myfile<<vFs[i]<<',';
 			for (int n = 0; n < nMeasChannels_; n++){
-				myfile<<iMs[i*nMeasChannels_ + n]<<','
+				myfile << iMs[i * nMeasChannels_ + n] << ',';
 			}
-			<<tMs[i]<<','<<dMs[i]<<"\n";
+			myfile<<tMs[i]<<','<<dMs[i]<<"\n";
 		}
 		myfile.close();
 
@@ -774,29 +781,29 @@ namespace KT
 			" pulseV [V], pulseOffV [V], constV [V/A], nPulses, lRange, range,"
 			"comp, intTime, pulseSMU, forceMode, measMode\n";
 		myfile2<<pulseP_.dt <<','<< initTime_<<','<< pulseTime_ <<','<<stepTime_<<','
-			<<pulseV_<<','<<pulseOffV_<<', [';
+			<<pulseV_<<','<<pulseOffV_<<", [";
 		for (int smu=0; smu<3; smu++){
 			myfile2<<pulseP_.appV[smu]<<',';
 			
 		}
 
-		myfile2<<pulseP_.appV[3]<< "],"<<nPulses_<<','<< pulseP_.lRange<<', [';
+		myfile2<<pulseP_.appV[3]<< "],"<<nPulses_<<','<< pulseP_.lRange<<", [";
 		for (int smu = 0; smu<3; smu++){
 				myfile2<<pulseP_.range[smu]<<',';
 		}
-		myfile2<<pulseP_.range[3]<<'], ['
+		myfile2 << pulseP_.range[3] << "], [";
 			
 		for (int smu = 0; smu<3; smu++){
 			myfile2<<pulseP_.comp[smu]<<',';
 		}
 
-		myfile2<<pulseP_.comp[3]<<"], "
-				<<pulseP_.intTime<<', ['
+		myfile2 << pulseP_.comp[3] << "], "
+			<< pulseP_.intTime << ", [";
 
 		for (int smu = 0; smu<3; smu++){
-			myfile2<<pulseSMU[smu]<<',';
+			myfile2<<pulseSMU_[smu]<<',';
 		}		
-		myfile2<<pulseSMU[3]<< '], ['
+		myfile2 << pulseSMU_[3] << "], [";
 		
 		for (int smu = 0; smu<3; smu++){
 			myfile2<<pulseP_.forceMode[smu]<<',';

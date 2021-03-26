@@ -52,13 +52,14 @@ void mcTest();
 
 int __cdecl main(void)
 {
-   return 0;
+	sweepTest();
+    return 0;
 }
 void threadTest(){
 	/*
 	constVDS_IDSParameters constP;
 
-
+	
 	constP.measTime = 10;
 	constP.dt = 1000;
 	constP.lRange = 6;
@@ -248,34 +249,45 @@ void multiDevTC(){
 }
 
 void pulseTest(){
-	/*
-	pulseVGS_IDSParameters pulseP;
-	pulseP.appV[0]=0;
-	pulseP.appV[1] = 2;
-	pulseP.appV[2] = 1;
-	pulseP.appV[3]=0;
+	
+	pulseProgramParameters pulseP;
+
 	pulseP.pulseV = 5;
 	pulseP.pulseOffV = 1;
 	pulseP.initTime = 3;
 	pulseP.stepTime = 1;
 	pulseP.pulseTime = 1;
-	pulseP.nPulses = 4;
+	pulseP.nPulses = 3;
 	pulseP.dt = 200;
-	pulseP.pulseSMU = 3;
-	pulseP.measSMU = 2;
+
 	pulseP.lRange = 3;
-	pulseP.range =3;
-	pulseP.comp = 3;
+
 	pulseP.intTime = 1;
 
-	KT::pulseVGS_IDS pulse(pulseP);
+	bool pulseSMU[4] = { FALSE, TRUE, FALSE, FALSE };
+	int range[] = { 0,0, 0, 0 };
+	int comp[] = { 1, 1,1,1 };
+	char measMode[] = { 'N', 'I','I', 'N' };
+	char forceMode[] = { 'N', 'V','V', 'N' };
+	double appV[] = { 0, 1, 5, 0 };
+	for (int i = 0; i < 4; i++) {
+		pulseP.range[i] = range[i];
+		pulseP.comp[i] = comp[i];
+		pulseP.forceMode[i] = forceMode[i];
+		pulseP.measMode[i] = measMode[i];
+		pulseP.appV[i] = appV[i];
+		pulseP.pulseSMU[i] = pulseSMU[i];
+	}
+
+	KT::pulseProgram pulse(pulseP);
 
 	int arraySize = pulse.arraySizeNeeded();
 	std::cout<<"Array size is: "<<arraySize<<std::endl;
 	
+	int nC = 2;
 	
 	double * vFs = new double[arraySize];
-	double * iMs = new double[arraySize];
+	double * iMs = new double[arraySize * nC];
 	double * tMs = new double[arraySize];
 	int * dMs = new int[arraySize];
 	//swp.runFlight(vFs, iMs, tMs, dMs, 0);
@@ -294,42 +306,50 @@ void pulseTest(){
 	//std::string fn2 = "Param_";
 	
 	pulse.saveData(fn, vFs, iMs, tMs, dMs, arraySize);
-	getch();
+
 	
 	delete vFs;
 	delete iMs;
 	delete tMs;
 	delete dMs;
-*/
+	
 }
 void constTest(){
-	/*
-	constVDS_IDSParameters constP;
+	
+	constProgramParameters constP;
 	
 	
-	constP.measTime = 10;
+	constP.measTime = 1800;
 	constP.dt = 1000;
 	constP.lRange = 6;
-	constP.range = 6;
-	constP.comp = 4;
+
 	constP.intTime = 1;
-	constP.measSMU =3;
-	constP.appV[0] =0;
-	constP.appV[1] = 0;
-	constP.appV[2] = .2;
-	constP.appV[3] = 0;
+
+	int range[] = { 0,0, 0, 0 };
+	int comp[] = { 1, 1,1,1 };
+	char measMode[] = { 'N', 'N','V', 'N' };
+	char forceMode[] = { 'N', 'N','I', 'N' };
+	double appV[] = { 0, 0, 0, 0 };
+	for (int i = 0; i < 4; i++) {
+		constP.range[i] = range[i];
+		constP.comp[i] = comp[i];
+		constP.forceMode[i] = forceMode[i];
+		constP.measMode[i] = measMode[i];
+		constP.appV[i] = appV[i];
+	}
 	//constP.constSMU =2;
 	
-	KT::constVDS_IDS swp(constP);
+	KT::constProgram swp(constP);
 
 	int arraySize = swp.arraySizeNeeded();
+	std::cout << arraySize << std::endl;
 	
 	std::cout<<"Array size is: "<<arraySize<<std::endl;
 	
-	
+	int nC = 1;
 	//rc3.chAllOn();
 	//double * vFs = new double[arraySize];
-	double * iMs = new double[arraySize];
+	double * iMs = new double[arraySize*nC];
 	double * tMs = new double[arraySize];
 	int * dMs = new int[arraySize];
 	swp.runProgram(iMs, tMs, dMs, arraySize);
@@ -341,14 +361,14 @@ void constTest(){
 	}
 
 	
-	std::string fn = "vdsidsConst_test2";
+	std::string fn = "test";
 	//std::string fn2 = "Param_";
 	swp.saveData(fn, iMs, tMs, dMs, arraySize);
 	//delete vFs;
 	delete iMs;
 	delete tMs;
 	delete dMs;
-	*/
+	
 }
 
 void rcTest(){
@@ -363,41 +383,51 @@ void rcTest(){
 	*/
 }
 void stepTest(){
-	/*
-	stepVDS_IDSParameters sweepP;
-	sweepP.startV = 1;
-	sweepP.stopV = 2;
-	sweepP.stepV = 0.2;
-	sweepP.dt = 60;
-	sweepP.stepTime = 5;
-	sweepP.stepSMU = 3;
-	//sweepP.constSMU = 3;
-	sweepP.measSMU = 2;
-	//sweepP.constV = 0.05;
-	sweepP.appV[0] =  0;
-	sweepP.appV[1] = 3;
-	sweepP.appV[2] = 0.5;
-	sweepP.appV[3] = 0;
 	
+	stepProgramParameters sweepP;
+	sweepP.startV = 4;
+	sweepP.stopV = 6;
+	sweepP.stepV = 1;
+	sweepP.dt = 200;
+	sweepP.stepTime = 2;
+
 	sweepP.lRange = 3;
-	sweepP.range =3;
-	sweepP.comp = 3;
+
 	sweepP.intTime = 1;
-	sweepP.nCycles = 1;
-	sweepP.fullCycle = 0;
-	KT::stepVDS_IDS swp(sweepP);
+	sweepP.nCycles = 2;
+	sweepP.fullCycle = 1;
+
+
+	bool stepSMU[4] = { FALSE, TRUE, TRUE, FALSE };
+	int range[] = { 0,0, 0, 0 };
+	int comp[] = { 1, 1,1,1 };
+	char measMode[] = { 'N', 'I','I', 'N' };
+	char forceMode[] = { 'N', 'V','V', 'N' };
+	double appV[] = { 0, 1, 0, 0 };
+	for (int i = 0; i < 4; i++) {
+		sweepP.range[i] = range[i];
+		sweepP.comp[i] = comp[i];
+		sweepP.forceMode[i] = forceMode[i];
+		sweepP.measMode[i] = measMode[i];
+		sweepP.appV[i] = appV[i];
+		sweepP.stepSMU[i] = stepSMU[i];
+	}
+
+
+
+	KT::stepProgram swp(sweepP);
 	
 	
 	int arraySize = swp.arraySizeNeeded();
 	std::cout<<"Array size is: "<<arraySize<<std::endl;
-	
+	int nC = 2;
 	double * vFs = new double[arraySize];
-	double * iMs = new double[arraySize];
+	double * iMs = new double[arraySize*nC];
 	double * tMs = new double[arraySize];
 	int * dMs = new int[arraySize];
 	//swp.runFlight(vFs, iMs, tMs, dMs, 0);
 	swp.runProgram(vFs, iMs, tMs, dMs, arraySize);
-	/*
+	
 	for (int i = 0; i<arraySize; i++){
 		std::cout<<"F: :"<<vFs[i]<<std::endl;
 		std::cout<<"i: "<<iMs[i]<<std::endl;
@@ -407,7 +437,7 @@ void stepTest(){
 	
 	//std::cout<<arraySize<<std::endl;
 	
-	std::string fn = "LStV_G6_5_PBS_long_test";
+	std::string fn = "step_test";
 	//std::string fn2 = "Param_";
 	
 	swp.saveData(fn, vFs, iMs, tMs, dMs, arraySize);
@@ -416,34 +446,49 @@ void stepTest(){
 	delete iMs;
 	delete tMs;
 	delete dMs;
-	*/
+	
 }
 void sweepTest(){
-/*
-	sweepVDS_IDSParameters sweepP;
-	sweepP.sweepSMU = 2;
-	sweepP.constSMU = 1;
-	sweepP.measSMU = 2;
-	sweepP.startV = -.7;
-	sweepP.stopV = .1;
-	sweepP.SR = 0.1;
-	sweepP.constV = 0.0;
+
+	sweepProgramParameters sweepP;
+
+	sweepP.startV = 2;
+	sweepP.stopV = 3;
+	sweepP.SR = 0.5;
+
 	sweepP.lRange = 3;
-	sweepP.range =3;
-	sweepP.comp = 3;
+
 	sweepP.intTime = 1;
-	sweepP.nCycles = 10;
+	sweepP.nCycles = 2;
 	sweepP.fullCycle = TRUE;
 
-	KT::sweepVDS_IDS swp(sweepP);
+	bool sweepSMU[4] = { FALSE, TRUE, FALSE, FALSE };
+	int range[] = { 0,0, 0, 0 };
+	int comp[] = { 1, 1,1,1 };
+	char measMode[] = { 'N', 'I','I', 'N' };
+	char forceMode[] = { 'N', 'V','V', 'N' };
+	double appV[] = { 0, 0, 4, 0 };
+	int nC = 0;
+	for (int i = 0; i < 4; i++) {
+		sweepP.range[i] = range[i];
+		sweepP.comp[i] = comp[i];
+		sweepP.forceMode[i] = forceMode[i];
+		sweepP.measMode[i] = measMode[i];
+		sweepP.appV[i] = appV[i];
+		sweepP.sweepSMU[i] = sweepSMU[i];
+		if (measMode[i] != 'N') nC++;
+
+	}
 	
+	KT::sweepProgram swp(sweepP);
 	
+
 	int arraySize = swp.arraySizeNeeded();
 	std::cout<<"Array size is: "<<arraySize<<std::endl;
-	rc3.chOn(5);
+	//rc3.chOn(5);
 	//rc3.chAllOn();
 	double * vFs = new double[arraySize];
-	double * iMs = new double[arraySize];
+	double * iMs = new double[arraySize*nC];
 	double * tMs = new double[arraySize];
 	int * dMs = new int[arraySize];
 	swp.runProgram(vFs, iMs, tMs, dMs, arraySize);
@@ -455,12 +500,13 @@ void sweepTest(){
 	}
 
 	
-	std::string fn = "CVF5GndPos";
+	std::string fn = "sweep_test";
 	//std::string fn2 = "Param_";
 	swp.saveData(fn, vFs, iMs, tMs, dMs, arraySize);
 	delete vFs;
 	delete iMs;
 	delete tMs;
 	delete dMs;
-	*/
+	
+	
 }

@@ -39,20 +39,28 @@ namespace KT
 
 		//Set the machine parameters: Compliance, range, integration time 
 		//keith_->setComp(measSMU_,comp_);
-		keith_->setLRange(measSMU_, lRange_);
+		
 		//keith_.setRange(measSMU_, range_); Command not recognized?????
 		keith_->setIntTime(intTime_);
-
+		int k = 0;
+		for (int i = 0; i < 4; i++) {
+			if ((measMode_[i] == 'I') | (measMode_[i] == 'V')) {
+				chMeas_[k] = i + 1;
+				keith_->setLRange(chMeas_[k], lRange_);
+				k++;
+			}
+		}
+		nMeasChannels_ = k;
 		//Set the time of each measurement based on the
 		//desired integration time
 		if (intTime_ == 1){
-			dtMeas_ = 50 * nChannels_; //ms
+			dtMeas_ = 50 * nMeasChannels_; //ms
 		}
 		else if (intTime_ == 2) {
-			dtMeas_ = 100 * nChannels_; //ms
+			dtMeas_ = 100 * nMeasChannels_; //ms
 		}
 		else if (intTime_ == 3) {
-			dtMeas_ = 700 * nChannels_; //ms
+			dtMeas_ = 700 * nMeasChannels_; //ms
 		}
 		else 
 		{
@@ -70,14 +78,7 @@ namespace KT
 		//Ensure stepV has the correct sign
 		if (startV_ > stopV_) stepV_ = -1*stepV_;
 		
-		int k = 0;
-		for (int i = 0; i<4; i++){
-			if ((measMode_[i] == 'I') | (measMode_[i] == 'V')){
-				chMeas_[k] = i+1;
-				k++;
-			}
-		}
-		nMeasChannels_ = k;
+
 
 		k = 0;
 		for (int i = 0; i<4; i++){
@@ -108,6 +109,7 @@ namespace KT
 				keith_->ivForce((i+1), appV_[i]);
 			}
 		}
+		return 0;
 	}
 
 	
@@ -116,6 +118,7 @@ namespace KT
 		keith_->setForceMode(forceMode_[SMU-1]);
 		keith_->setRange(range_[SMU-1]);
 		keith_->setComp(comp_[SMU - 1]);
+		return 0;
 	}
 
 
@@ -154,9 +157,9 @@ namespace KT
 		v = v + stepV_;		
 		
 		//Measure and store current
-		for (int n=0; n<nMeasChannels_; n++){
-			keith_->ivMeas(chMeas_[n], measMode[chMeas[n]-1], iMs[n]);
-		
+		for (int n = 0; n < nMeasChannels_; n++) {
+			keith_->ivMeas(chMeas_[n], measMode_[chMeas_[n] - 1], iMs[n]);
+		}
 		//Record the time
 		tMs[iStart] = (double)(clock());
 
@@ -170,7 +173,9 @@ namespace KT
 		dMs[iStart] = delayT;
 
 		//Sleep for remainder of measurement period
+
 		Sleep(delayT);
+
 		
 		//Repeat for length of array, since multiple sweeps may occur,
 		//the indices of where to store data in array will differe by iStart
@@ -182,7 +187,7 @@ namespace KT
 			vFs[i] = v;
 			v = v + stepV_;
 			for (int n=0; n<nMeasChannels_; n++){		
-				keith_->ivMeas(chMeas_[n], measMode[chMeas[n]-1], iMs[i*nMeasChannels_ + n]);
+				keith_->ivMeas(chMeas_[n], measMode_[chMeas_[n]-1], iMs[i*nMeasChannels_ + n]);
 			}
 			tMs[i] = (double)(clock());
 			delayT = dtMeas_*(i+1) - tMs[i];
