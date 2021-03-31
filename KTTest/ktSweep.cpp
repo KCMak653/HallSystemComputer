@@ -8,7 +8,8 @@
 #include <stdlib.h>
 #include <malloc.h>
 #include<iostream>
-#include<time.h>
+#include<chrono>
+#include<thread>
 
 
 
@@ -136,14 +137,15 @@ namespace KT
 		//Delay for the remainder of the measurment time
 		//increment the voltage and repeat
 		
-		int delayT;
+		long delayT;
 
 		//initalize voltage to start of sweep
 		double v = startV_;
 		
 		//Initiate the timer
-		clock_t clk = clock();
-		clock_t clk2 = clk;
+		auto clk = std::chrono::high_resolution_clock::now();
+
+		
 		
 		//Force voltage
 		for (int n=0; n<nSwChannels_; n++){
@@ -161,7 +163,9 @@ namespace KT
 			keith_->ivMeas(chMeas_[n], measMode_[chMeas_[n] - 1], iMs[n]);
 		}
 		//Record the time
-		tMs[iStart] = (double)(clock());
+		
+		auto clk2 = std::chrono::high_resolution_clock::now();
+		tMs[iStart] = std::chrono::duration_cast<std::chrono::milliseconds> (clk2-clk).count();
 
 		//Calculate amount of time to delay
 		delayT = dtMeas_ - tMs[iStart];
@@ -174,7 +178,7 @@ namespace KT
 
 		//Sleep for remainder of measurement period
 
-		Sleep(delayT);
+		std::this_thread::sleep_for(std::chrono::milliseconds(delayT));
 
 		
 		//Repeat for length of array, since multiple sweeps may occur,
@@ -189,11 +193,12 @@ namespace KT
 			for (int n=0; n<nMeasChannels_; n++){		
 				keith_->ivMeas(chMeas_[n], measMode_[chMeas_[n]-1], iMs[i*nMeasChannels_ + n]);
 			}
-			tMs[i] = (double)(clock());
+			clk2 = std::chrono::high_resolution_clock::now();
+			tMs[i] = std::chrono::duration_cast<std::chrono::milliseconds> (clk2 - clk).count();
 			delayT = dtMeas_*(i+1) - tMs[i];
 			if (delayT < 0) {delayT = 0;}
 			dMs[i] = delayT;
-			Sleep(delayT);
+			std::this_thread::sleep_for(std::chrono::milliseconds(delayT));
 		}
 		
 		return 0;

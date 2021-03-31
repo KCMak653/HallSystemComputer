@@ -6,7 +6,8 @@
 #include <stdlib.h>
 #include <malloc.h>
 #include<iostream>
-#include<time.h>
+#include <chrono>
+#include <thread>
 
 namespace KT
 {
@@ -126,13 +127,14 @@ namespace KT
 			return 1;
 		}		
 
-		int delayT;
+		long delayT;
 		
 		//double v = constV_;
 		//Initiate the timer
-		clock_t clk = clock();
-		clock_t clk2 = clk;
-		
+		//clock_t clk = clock();
+		//clock_t clk2 = clk;
+		auto clk =  std::chrono::high_resolution_clock::now();
+
 		//Apply constant bias
 		//std::cout<<"V: "<<constV_<<std::endl;
 		// for (int smu = 0; smu<4; smu++){
@@ -151,9 +153,9 @@ namespace KT
 		for (int n=0; n<nMeasChannels_; n++){
 			keith_->ivMeas(chMeas_[n], measMode_[chMeas_[n]-1], iMs[n+iStart]);
 		}
-		
+		auto clk2 = std::chrono::high_resolution_clock::now();
 		//Record the time
-		tMs[iStart] = (double)(clock());
+		tMs[iStart] = std::chrono::duration_cast<std::chrono::milliseconds>(clk2-clk).count();
 
 		//Calculate amount of time to delay
 		delayT = dt_ - tMs[iStart];
@@ -165,7 +167,7 @@ namespace KT
 		dMs[iStart] = delayT;
 
 		//Sleep for remainder of measurement period
-		Sleep(delayT);
+		std::this_thread::sleep_for(std::chrono::milliseconds(delayT));
 		
 		//Repeat for length of array, since multiple sweeps may occur,
 		//the indices of where to store data in array will differe by iStart
@@ -174,11 +176,13 @@ namespace KT
 			for (int n = 0; n<nMeasChannels_; n++){
 				keith_->ivMeas(chMeas_[n], measMode_[chMeas_[n]-1], iMs[i*nMeasChannels_ + n]);
 			}
-			tMs[i] = (double)(clock());
+			clk2 = std::chrono::high_resolution_clock::now();
+			tMs[i] = std::chrono::duration_cast<std::chrono::milliseconds>(clk2 -clk).count();
 			delayT = dt_*(i+1) - tMs[i];
+			std::cout << delayT << std::endl;
 			if (delayT < 0) {delayT = 0;}
 			dMs[i] = delayT;
-			Sleep(delayT);
+			std::this_thread::sleep_for(std::chrono::milliseconds(delayT));
 		}
 		
 		return 0;

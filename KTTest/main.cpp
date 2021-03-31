@@ -48,12 +48,136 @@ void threadTest();
 void rcTest();
 void multiDevTC();
 void mcTest();
-
+void SarryTest();
 
 int __cdecl main(void)
 {
-	sweepTest();
+	SarryTest();
     return 0;
+}
+void SarryTest() {
+
+	sweepProgramParameters sweepP;
+
+	//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+	// 	   //Modify Test parameters:
+	// 
+	//Start voltage (V)
+	sweepP.startV = 2; 
+	//Stop voltage (V)
+	sweepP.stopV = 4;
+	//Scan rate (V)
+	sweepP.SR = 0.5;
+
+	//Lowest current range 1E-X (specify X, magnitude) (A)
+		//If you are measuring low currents (< 1uA) increase to 5 otherwise keep at 3
+		//Higher values will slow system down 
+	sweepP.lRange = 3;
+
+	//Integration time (leave as 1, for steadier measurements 2 or 3 is OK)
+	sweepP.intTime = 1;
+
+	//# of sweep cycles (integer)
+	sweepP.nCycles = 2;
+
+	//Whether to sweep backwards (start V -> stop V -> start V), TRUE for full cycle
+	sweepP.fullCycle = TRUE;
+
+	//The following parameters work on array basis. Each SMU corresponds to the position in arrary
+		//{SMU1, SMU2, SMU3, SMU4}
+
+	//Indicate which SMUs to sweep i.e if {TRUE, FALSE, TRUE, FALSE} only SMU 1 and 3 are swept
+	bool sweepSMU[4] = { FALSE, TRUE, FALSE, FALSE };
+
+	//Range for each SMU - Select based on what you are MEASURING, when in doubt just use: 0 - Autorange
+		// 0 - Autorange
+		// 1 - 1 nA or 20 V
+		// 2 - 10 nA or 200 V
+		// 3 - 100 nA or 200 V
+		// 4 - 1 uA or 200 mV
+		// 5 - 10 uA or 2 V
+		// 6 - 100 uA
+		// 7 - 1 mA
+		// 8 - 10 mA
+		// 9 - 100 mA
+		// 10 - 1 A
+		// 11 - 1 pA
+		// 12 - 10 pA
+		// 13 - 100 pA
+	int range[] = { 0,0, 0, 0 };
+
+	//Compliance (max value it can measure - leave as 1)
+	int comp[] = { 1, 1,1,1 };
+
+	//Measurement mode:
+		// 'I' - Measure current
+		// 'V' - Measure voltage
+		// 'N' - Don't measure
+	char measMode[] = { 'N', 'I','I', 'N' };
+
+	//Constant force mode 
+		// 'I' - Force current
+		// 'V' - Force voltage
+		// 'N' - Don't force
+	char forceMode[] = { 'N', 'V','V', 'N' };
+
+	//Constant voltage or current to apply (V or A)
+	double appV[] = { 0, 0, 4, 0 };
+
+
+	//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+
+	//****************************************************************
+	//Don't modify anything here
+	int nC = 0;
+	for (int i = 0; i < 4; i++) {
+		sweepP.range[i] = range[i];
+		sweepP.comp[i] = comp[i];
+		sweepP.forceMode[i] = forceMode[i];
+		sweepP.measMode[i] = measMode[i];
+		sweepP.appV[i] = appV[i];
+		sweepP.sweepSMU[i] = sweepSMU[i];
+		if (measMode[i] != 'N') nC++;
+
+	}
+
+	KT::sweepProgram swp(sweepP);
+	
+
+	int arraySize = swp.arraySizeNeeded();
+	std::cout << "Array size is: " << arraySize << std::endl;
+	//rc3.chOn(5);
+	//rc3.chAllOn();
+	double* vFs = new double[arraySize];
+	double* iMs = new double[arraySize * nC];
+	double* tMs = new double[arraySize];
+	int* dMs = new int[arraySize];
+	swp.runProgram(vFs, iMs, tMs, dMs, arraySize);
+	for (int i = 0; i < arraySize; i++) {
+		std::cout << "F: :" << vFs[i] << std::endl;
+		std::cout << "i: " << iMs[i] << std::endl;
+		std::cout << "t: " << tMs[i] << std::endl;
+		std::cout << "d: " << dMs[i] << std::endl;
+	}
+
+	//********************************************************************************************
+	
+	//++++++++++++++++++++++++++++++++++++++++++++++++++
+	//Modify File name for data:
+	std::string fn = "../../Sarry/sweep_test";
+	//++++++++++++++++++++++++++++++++++++++++++++++++++
+
+	//*************************************************************************************************
+	//do not modify
+	swp.saveData(fn, vFs, iMs, tMs, dMs, arraySize);
+	delete vFs;
+	delete iMs;
+	delete tMs;
+	delete dMs;
+	//**************************************************************************************************
+	
+
 }
 void threadTest(){
 	/*
@@ -112,6 +236,10 @@ void threadTest(){
 	*/
 }
 void mcTest(){
+	
+	MC::mcConst md(8);
+	md.movePosition(7);
+
 	/*
 		//std::cin>>c;
 	
@@ -319,7 +447,7 @@ void constTest(){
 	constProgramParameters constP;
 	
 	
-	constP.measTime = 1800;
+	constP.measTime = 10;
 	constP.dt = 1000;
 	constP.lRange = 6;
 
@@ -327,9 +455,9 @@ void constTest(){
 
 	int range[] = { 0,0, 0, 0 };
 	int comp[] = { 1, 1,1,1 };
-	char measMode[] = { 'N', 'N','V', 'N' };
-	char forceMode[] = { 'N', 'N','I', 'N' };
-	double appV[] = { 0, 0, 0, 0 };
+	char measMode[] = { 'N', 'V','N', 'N' };
+	char forceMode[] = { 'N', 'I','N', 'N' };
+	double appV[] = { 0, 0.0000005, 0, 0 };
 	for (int i = 0; i < 4; i++) {
 		constP.range[i] = range[i];
 		constP.comp[i] = comp[i];
@@ -340,7 +468,7 @@ void constTest(){
 	//constP.constSMU =2;
 	
 	KT::constProgram swp(constP);
-
+	
 	int arraySize = swp.arraySizeNeeded();
 	std::cout << arraySize << std::endl;
 	
@@ -465,8 +593,8 @@ void sweepTest(){
 	bool sweepSMU[4] = { FALSE, TRUE, FALSE, FALSE };
 	int range[] = { 0,0, 0, 0 };
 	int comp[] = { 1, 1,1,1 };
-	char measMode[] = { 'N', 'I','I', 'N' };
-	char forceMode[] = { 'N', 'V','V', 'N' };
+	char measMode[] = { 'N', 'I','N', 'N' };
+	char forceMode[] = { 'N', 'V','N', 'N' };
 	double appV[] = { 0, 0, 4, 0 };
 	int nC = 0;
 	for (int i = 0; i < 4; i++) {

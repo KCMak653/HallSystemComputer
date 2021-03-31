@@ -12,6 +12,7 @@
 #include<string.h>
 #include<string>
 #include <fstream>
+#include "ni4882.h"
 
 namespace KT
 {
@@ -80,7 +81,10 @@ namespace KT
 
 	int sweepProgram::runProgram(double vFs[], double iMs[], double tMs[], int dMs[], int sizeArray)
 	{
-		
+		if (Ibsta() & ERR) {
+			std::cout << "Issue with device initialization - Quitting now" << std::endl;
+			return 1;
+		}
 		int smuInd = 0;
 		int k = 0;
 		while (smuInd == 0){
