@@ -6,7 +6,8 @@
 #include <stdlib.h>
 #include <malloc.h>
 #include<iostream>
-#include<time.h>
+#include <chrono>
+#include <thread>
 
 namespace MC
 {
@@ -14,7 +15,7 @@ namespace MC
 	{
 		iPos_ = iPos;
 		cPos_ = iPos;
-		mLSteps_ = 370;
+		mLSteps_ = 360;
 		lLimN_ = -(iPos_ - 5)*mLSteps_;
 		rLimN_ = (15 - iPos_)*mLSteps_;
 		direc_ = -1;
@@ -48,7 +49,7 @@ namespace MC
 		return 0;
 	}
 
-	int mcConst::move(double fPos, double time)
+	int mcConst::move(double fPos, double time, long delayTime)
 	{
 		int fPosN = (fPos -cPos_)*mLSteps_*direc_;
 		if (fPosN < 0)
@@ -74,17 +75,18 @@ namespace MC
 		mc_->setNSteps(nSteps);
 
 		int nMvs = time/dt + 1;
-		int delayT;
-
-		clock_t clk = clock();
-		clock_t clk2 = clk;
+		long delayT;
+		std::this_thread::sleep_for(std::chrono::seconds(delayTime));
+		auto clk = std::chrono::high_resolution_clock::now();
+		auto clk2 = std::chrono::high_resolution_clock::now();
 
 		for (int i=0; i<nMvs; i++)
 		{
-			delayT = dt*(i+1)*1e3 - (double)(clock());
+			clk2 = std::chrono::high_resolution_clock::now();
+			delayT = dt*(i+1)*1e3 - std::chrono::duration_cast<std::chrono::milliseconds>(clk2 - clk).count();
 			if (delayT < 0) {delayT = 0;}
-			Sleep(delayT);
-			std::cout<<"step"<<std::endl;
+			std::this_thread::sleep_for(std::chrono::milliseconds(delayT));
+			//std::cout<<"step"<<std::endl;
 			mc_->move();
 		}
 		cPos_ = fPos;

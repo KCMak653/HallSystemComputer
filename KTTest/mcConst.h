@@ -11,7 +11,7 @@ namespace MC
 
 		int movePosition(double fPos);
 
-		int move(double fPos, double speed); //steps per second?
+		int move(double fPos, double time, long delayTime); //Final position, time, and amount to delay at start [s]
 
 		int changeDirection();
 		

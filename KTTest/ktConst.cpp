@@ -179,7 +179,7 @@ namespace KT
 			clk2 = std::chrono::high_resolution_clock::now();
 			tMs[i] = std::chrono::duration_cast<std::chrono::milliseconds>(clk2 -clk).count();
 			delayT = dt_*(i+1) - tMs[i];
-			std::cout << delayT << std::endl;
+			//std::cout << delayT << std::endl;
 			if (delayT < 0) {delayT = 0;}
 			dMs[i] = delayT;
 			std::this_thread::sleep_for(std::chrono::milliseconds(delayT));

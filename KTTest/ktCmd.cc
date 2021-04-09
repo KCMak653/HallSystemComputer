@@ -60,7 +60,7 @@ namespace KT
 		strcpy(ivForceCMD_, CMD);
 		static char const trigCMD[] = "TI1\0";
 		strcpy(ivTrigCMD_, trigCMD); 
-		static char lRangeCMD[] = "RG 1, 1E-3\0";
+		static char lRangeCMD[] = "RG 3, 1E-3\0";
 		strcpy(setLRangeCMD_, lRangeCMD);
 		//static char rangeCMD[] = "RI 1, 1E-3, 1E-3\0";
 		//strcpy(setRangeCMD_, rangeCMD);

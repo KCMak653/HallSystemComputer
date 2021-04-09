@@ -1,15 +1,2 @@
-﻿  ktSweep.cpp
-C:\Users\Nanotech\source\repos\HallSystemComputer\KTTest\ktSweep.cpp(77,55): warning C4244: '=': conversion from 'double' to 'int', possible loss of data
-C:\Users\Nanotech\source\repos\HallSystemComputer\KTTest\ktSweep.cpp(168,87): warning C4244: '=': conversion from '_Rep' to 'double', possible loss of data
-          with
-          [
-              _Rep=__int64
-          ]
-C:\Users\Nanotech\source\repos\HallSystemComputer\KTTest\ktSweep.cpp(171,20): warning C4244: '=': conversion from 'double' to 'long', possible loss of data
-C:\Users\Nanotech\source\repos\HallSystemComputer\KTTest\ktSweep.cpp(197,85): warning C4244: '=': conversion from '_Rep' to 'double', possible loss of data
-          with
-          [
-              _Rep=__int64
-          ]
-C:\Users\Nanotech\source\repos\HallSystemComputer\KTTest\ktSweep.cpp(198,27): warning C4244: '=': conversion from 'double' to 'long', possible loss of data
+﻿  main.cpp
   KTTest.vcxproj -> C:\Users\Nanotech\source\repos\HallSystemComputer\Debug\KTTest.exe
